@@ -1,0 +1,210 @@
+{% extends "base.html" %} {% block title %}Dashboard - Gestión de Instrumentos{%
+endblock %} {% block page_title %}Dashboard{% endblock %} {% block content %}
+<div class="space-y-6 max-w-[1400px] mx-auto px-4">
+  <!-- Row 1: Tarjetas de métricas -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
+    <!-- Card: Instrumentos Vencidos -->
+    <div
+      class="bg-gradient-to-br from-[#e74c3c]/20 to-[#c0392b]/20 border border-[#e74c3c]/40 rounded-xl p-4 lg:p-6 backdrop-blur-md"
+    >
+      <div class="flex justify-between items-start mb-3 lg:mb-4">
+        <div class="flex-1 min-w-0">
+          <p class="text-[#b0c4de] text-xs lg:text-sm font-medium">
+            Instrumentos Vencidos
+          </p>
+          <h3
+            class="text-3xl lg:text-4xl font-bold text-white mt-2"
+            id="expired-count"
+          >
+            0
+          </h3>
+        </div>
+        <div class="p-2 lg:p-3 bg-[#e74c3c]/30 rounded-lg flex-shrink-0">
+          <svg
+            class="w-5 h-5 lg:w-6 lg:h-6 text-[#ff6b6b]"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </div>
+      </div>
+      <p class="text-[#ff9999] text-xs">Requieren atención inmediata</p>
+    </div>
+
+    <!-- Card: Próximos a Calibrar -->
+    <div
+      class="bg-gradient-to-br from-[#f39c12]/20 to-[#e67e22]/20 border border-[#f39c12]/40 rounded-xl p-4 lg:p-6 backdrop-blur-md"
+    >
+      <div class="flex justify-between items-start mb-3 lg:mb-4">
+        <div class="flex-1 min-w-0">
+          <p class="text-[#b0c4de] text-xs lg:text-sm font-medium">
+            Próximos a Calibrar
+          </p>
+          <h3
+            class="text-3xl lg:text-4xl font-bold text-white mt-2"
+            id="upcoming-count"
+          >
+            0
+          </h3>
+        </div>
+        <div class="p-2 lg:p-3 bg-[#f39c12]/30 rounded-lg flex-shrink-0">
+          <svg
+            class="w-5 h-5 lg:w-6 lg:h-6 text-[#ffc107]"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </div>
+      </div>
+      <p class="text-[#ffd699] text-xs">En los próximos 30 días</p>
+    </div>
+
+    <!-- Card: Calibrados Este Mes -->
+    <div
+      class="bg-gradient-to-br from-[#27ae60]/20 to-[#229954]/20 border border-[#27ae60]/40 rounded-xl p-4 lg:p-6 backdrop-blur-md sm:col-span-2 lg:col-span-1"
+    >
+      <div class="flex justify-between items-start mb-3 lg:mb-4">
+        <div class="flex-1 min-w-0">
+          <p class="text-[#b0c4de] text-xs lg:text-sm font-medium">
+            Calibrados Este Mes
+          </p>
+          <h3
+            class="text-3xl lg:text-4xl font-bold text-white mt-2"
+            id="calibrated-count"
+          >
+            0
+          </h3>
+        </div>
+        <div class="p-2 lg:p-3 bg-[#27ae60]/30 rounded-lg flex-shrink-0">
+          <svg
+            class="w-5 h-5 lg:w-6 lg:h-6 text-[#52be80]"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+          >
+            <path
+              fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+              clip-rule="evenodd"
+            />
+          </svg>
+        </div>
+      </div>
+      <p class="text-[#99e8b9] text-xs">Tareas completadas</p>
+    </div>
+  </div>
+
+  <!-- Row 2: Gráficos -->
+  <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 lg:gap-6">
+    <!-- Histograma: Instrumentos Calibrados por Mes -->
+    <div
+      class="bg-[#1a3a5c]/80 backdrop-blur-md p-4 lg:p-6 rounded-xl shadow-2xl border border-[#164ab8]/30"
+    >
+      <h3 class="text-lg lg:text-xl font-bold text-white mb-4 lg:mb-6">
+        Calibraciones por Mes
+      </h3>
+      <div class="relative h-64 lg:h-80">
+        <canvas id="histogramChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Diagrama de Pastel: Tipos de Instrumentos -->
+    <div
+      class="bg-[#1a3a5c]/80 backdrop-blur-md p-4 lg:p-6 rounded-xl shadow-2xl border border-[#164ab8]/30"
+    >
+      <h3 class="text-lg lg:text-xl font-bold text-white mb-4 lg:mb-6">
+        Distribución por Tipo
+      </h3>
+      <div class="relative h-64 lg:h-80">
+        <canvas id="pieChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 3: Tabla de Tipos -->
+  <div
+    class="bg-[#1a3a5c]/80 backdrop-blur-md p-4 lg:p-6 rounded-xl shadow-2xl border border-[#164ab8]/30"
+  >
+    <h3 class="text-lg lg:text-xl font-bold text-white mb-4 lg:mb-6">
+      Resumen por Tipo de Instrumento
+    </h3>
+    <div class="overflow-x-auto -mx-4 lg:mx-0">
+      <div class="inline-block min-w-full align-middle px-4 lg:px-0">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-[#164ab8]/50">
+              <th
+                class="text-left py-3 px-2 lg:px-4 text-[#b0c4de] font-semibold text-xs lg:text-sm"
+              >
+                Tipo
+              </th>
+              <th
+                class="text-center py-3 px-2 lg:px-4 text-[#b0c4de] font-semibold text-xs lg:text-sm"
+              >
+                Total
+              </th>
+              <th
+                class="text-center py-3 px-2 lg:px-4 text-[#b0c4de] font-semibold text-xs lg:text-sm"
+              >
+                Vencidos
+              </th>
+              <th
+                class="text-center py-3 px-2 lg:px-4 text-[#b0c4de] font-semibold text-xs lg:text-sm"
+              >
+                Próximos
+              </th>
+              <th
+                class="text-center py-3 px-2 lg:px-4 text-[#b0c4de] font-semibold text-xs lg:text-sm"
+              >
+                Vigentes
+              </th>
+            </tr>
+          </thead>
+          <tbody id="typeTable">
+            <tr
+              class="border-b border-[#164ab8]/20 hover:bg-[#164ab8]/10 transition"
+            >
+              <td class="py-3 px-2 lg:px-4 text-white text-xs lg:text-sm">
+                Cargando...
+              </td>
+              <td
+                class="text-center py-3 px-2 lg:px-4 text-white text-xs lg:text-sm"
+              >
+                -
+              </td>
+              <td
+                class="text-center py-3 px-2 lg:px-4 text-[#ff6b6b] text-xs lg:text-sm"
+              >
+                -
+              </td>
+              <td
+                class="text-center py-3 px-2 lg:px-4 text-[#ffc107] text-xs lg:text-sm"
+              >
+                -
+              </td>
+              <td
+                class="text-center py-3 px-2 lg:px-4 text-[#52be80] text-xs lg:text-sm"
+              >
+                -
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block scripts %}
+<!-- Pasar variables de Flask a JavaScript -->
+
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

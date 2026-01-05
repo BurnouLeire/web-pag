@@ -1,0 +1,156 @@
+/* =========================
+   VARIABLES Y CONFIGURACIÓN BASE
+========================= */
+:root {
+    --primary: #164ab8;
+    --accent: #f57e20;
+    --light: #ffffff;
+    --dark: #0f2744;
+    --surface: #1a3a5c;
+    --danger: #e74c3c;
+    --warning: #f39c12;
+    --success: #27ae60;
+}
+
+body { 
+    font-family: 'Inter', sans-serif; 
+}
+
+/* =========================
+   LAYOUT GENERAL
+========================= */
+main {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: calc(100vh - 80px);
+    padding: 40px 20px;
+}
+
+/* =========================
+   SIDEBAR
+========================= */
+.sidebar-hidden {
+    transform: translateX(-100%);
+}
+
+@media (min-width: 768px) {
+    .sidebar-show {
+        transform: translateX(0);
+    }
+}
+
+/* =========================
+   SCROLLBAR PERSONALIZADO
+========================= */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(15, 39, 68, 0.3);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(22, 74, 184, 0.5);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(22, 74, 184, 0.7);
+}
+
+/* =========================
+   ANIMACIONES Y TRANSICIONES
+========================= */
+.transition-all {
+    transition: all 0.3s ease;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* =========================
+   SPINNER DE CARGA
+========================= */
+.spinner {
+    border: 3px solid rgba(22, 74, 184, 0.1);
+    border-radius: 50%;
+    border-top: 3px solid #164ab8;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+}
+
+/* =========================
+   TARJETA PRINCIPAL
+========================= */
+.predictor-container {
+    background: var(--light);
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+    max-width: 900px;
+    width: 100%;
+    padding: 40px;
+}
+
+/* =========================
+   TEXTOS Y TÍTULOS
+========================= */
+.subtitle {
+    color: var(--dark);
+    font-weight: 500;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* =========================
+   INPUTS Y FORMULARIOS
+========================= */
+.search-input-group label {
+    color: var(--dark);
+    font-weight: 600;
+    margin-bottom: 6px;
+    display: block;
+}
+
+input[type="text"] {
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 15px;
+    color: #222;
+}
+
+/* =========================
+   BOTONES
+========================= */
+.btn-search {
+    background-color: var(--primary);
+    color: #fff;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-weight: bold;
+    transition: background 0.3s ease;
+    margin-top: 10px;
+}
+
+.btn-search:hover {
+    background-color: #0f3c8d;
+}
+
+/* =========================
+   RESULTADOS
+========================= */
+.result-card {
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 30px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}

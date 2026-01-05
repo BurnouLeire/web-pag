@@ -1,0 +1,83 @@
+{% extends "base.html" %} {% block title %}Laboratorio{% endblock %} {% block
+page_title %}Panel de Búsqueda{% endblock %} {% block content %}
+<div class="container mx-auto predictor-container">
+  <p class="subtitle">
+    Busca el instrumento por código y predice su próxima calibración
+  </p>
+
+  <div class="search-section">
+    <div class="search-box">
+      <div class="search-input-group">
+        <label for="codigoInstrumento">Código del Instrumento</label>
+        <input
+          type="text"
+          id="codigoInstrumento"
+          placeholder="Ej: INS-001, BAL-2024-001"
+          autocomplete="off"
+        />
+      </div>
+      <button class="btn-search" onclick="buscarInstrumento()" id="btnBuscar">
+        🔍 Buscar
+      </button>
+    </div>
+  </div>
+
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <p>Buscando instrumento y calculando predicción...</p>
+  </div>
+
+  <div class="error-message" id="errorMessage"></div>
+
+  <div class="instrument-info" id="instrumentInfo">
+    <div class="info-header">
+      <span class="info-title">Información del Instrumento</span>
+      <span class="info-code" id="infoCodigo">-</span>
+    </div>
+    <div class="info-grid" id="infoGrid"></div>
+  </div>
+
+  <div class="result-card" id="resultCard">
+    <div class="result-title">Próxima calibración en:</div>
+    <div class="result-value" id="diasResultado">-</div>
+    <div class="result-subtitle" id="fechaEstimada">-</div>
+
+    <div class="result-details">
+      <div class="detail-item">
+        <span class="detail-label">Equivalente a:</span>
+        <span class="detail-value" id="mesesResultado">-</span>
+        <span class="detail-unit">meses</span>
+      </div>
+      <div class="detail-item">
+        <span class="detail-label">O aprox.</span>
+        <span class="detail-value" id="semanasResultado">-</span>
+        <span class="detail-unit">semanas</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gráfico de Tendencia -->
+  <div class="trend-chart" id="trendChart">
+    <div class="chart-header">
+      <h3 class="chart-title">📊 Historial de Calibraciones</h3>
+      <p class="chart-subtitle">
+        Calibraciones reales vs predicción del modelo
+      </p>
+    </div>
+    <div class="chart-container">
+      <canvas id="calibrationChart"></canvas>
+    </div>
+    
+  </div>
+</div>
+{% endblock %} {% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  window.SUPABASE_CONFIG = {
+    url: "{{ supabase_url }}",
+    key: "{{ supabase_key }}",
+  };
+</script>
+<script src="{{ url_for('static', filename='js/laboratorio.js') }}"></script>
+
+{% endblock %}

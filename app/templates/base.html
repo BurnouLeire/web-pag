@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- El título puede ser dinámico -->
+    <title>{% block title %}Gestión de Instrumentos{% endblock %}</title>
+
+    <!-- Estilos -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/laboratorio.css') }}"
+    />
+    <!-- Scripts Externos -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+
+    </script>
+  </head>
+  <body
+    class="bg-gradient-to-br from-[#0f2744] via-[#1a3a5c] to-[#0f2744] min-h-screen"
+  >
+    <!-- Sidebar -->
+    <!-- Nota: La lógica de 'sidebar-hidden' debe manejarse en tu JS (app.js) -->
+    <div
+      id="sidebar"
+      class="fixed left-0 top-0 h-screen w-64 bg-gradient-to-b from-[#0f2744] to-[#1a3a5c] border-r border-[#164ab8]/30 shadow-2xl z-40 transition-transform duration-300 md:translate-x-0 sidebar-hidden md:sidebar-show"
+    >
+      <!-- Logo/Header -->
+      <div class="p-6 border-b border-[#164ab8]/30">
+        <div class="flex items-center gap-3 mb-2">
+          <div
+            class="p-2 bg-gradient-to-br from-[#164ab8] to-[#f57e20] rounded-lg"
+          >
+            <svg
+              class="w-6 h-6 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-white font-bold text-lg">Instruments</h1>
+            <p class="text-[#7a9cc6] text-xs">v1.0</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Nav Items -->
+      <nav class="p-4 space-y-2">
+        <!-- 
+              Cambiamos los <button> por <a> (enlaces)
+              Usamos una variable 'active_page' (que pasarás desde Flask) para saber qué botón resaltar 
+            -->
+        <a
+          href="{{ url_for('dashboard.dashboard') }}"
+          class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all duration-200 {% if active_page == 'dashboard' %} bg-gradient-to-r from-[#164ab8] to-transparent text-white {% else %} text-[#b0c4de] hover:bg-[#164ab8]/20 {% endif %}"
+        >
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path
+              d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4z"
+            />
+            <path
+              fill-rule="evenodd"
+              d="M3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zm8 0a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <span>Dashboard</span>
+        </a>
+
+        <a
+          href="{{ url_for('laboratorio.index') }}"
+          class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all duration-200 {% if active_page == 'laboratorio' %} bg-gradient-to-r from-[#164ab8] to-transparent text-white {% else %} text-[#b0c4de] hover:bg-[#164ab8]/20 {% endif %}"
+        >
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path
+              fill-rule="evenodd"
+              d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <span>Laboratorio</span>
+        </a>
+      </nav>
+
+      <!-- Spacer -->
+      <div class="flex-1"></div>
+
+      <!-- Footer -->
+      <div class="p-4 border-t border-[#164ab8]/30 space-y-2">
+        <!-- 
+              Este botón probablemente deba estar en tu 'auth.js' 
+              Lo dejamos como botón ya que no navega, sino que ejecuta una acción.
+            -->
+        <button
+          id="logout-btn"
+          class="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-[#ff9999] hover:bg-[#e74c3c]/20 font-medium transition-all duration-200"
+        >
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path
+              fill-rule="evenodd"
+              d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          <span>Cerrar Sesión</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Overlay para móvil -->
+    <div
+      id="sidebarOverlay"
+      class="fixed inset-0 bg-black/50 z-30 md:hidden hidden"
+      onClick="toggleSidebar()"
+    ></div>
+
+    <!-- Main Content -->
+    <div
+      class="md:ml-64 min-h-screen flex flex-col transition-all duration-300"
+    >
+      <!-- Top Bar -->
+      <header
+        class="bg-gradient-to-r from-[#164ab8] to-[#1a5fd4] shadow-lg p-4 md:p-6"
+      >
+        <div class="flex items-center justify-between">
+          <button
+            id="menuToggle"
+            class="md:hidden p-2 hover:bg-[#164ab8]/30 rounded-lg transition"
+          >
+            <svg
+              class="w-6 h-6 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            </svg>
+          </button>
+          <!-- El título de la página también puede ser dinámico -->
+          <h1 id="pageTitle" class="text-2xl font-bold text-white">
+            {% block page_title %}Dashboard{% endblock %}
+          </h1>
+          <div class="w-10"></div>
+        </div>
+      </header>
+
+      <!-- Content Area -->
+      <main class="flex-1 p-4 md:p-6">
+        <!-- 
+              Este es el bloque principal donde las plantillas hijas
+              insertarán su contenido específico.
+            -->
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+
+    <!-- 
+      JavaScript principal (para cosas como el toggle del sidebar)
+      Deberías tener este archivo en static/js/app.js
+    -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    <!-- En base.html, dentro del <head> o antes del cierre de </body> -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1"></script>
+    <!-- 
+      Bloque para scripts específicos de cada página 
+      (como los gráficos del dashboard)
+    -->
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

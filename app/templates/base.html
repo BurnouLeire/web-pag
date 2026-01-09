@@ -19,8 +19,12 @@
     <!-- Scripts Externos -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-
-    </script>
+    <script>
+    // Este es el puente: Flask llena estas variables desde el .env
+    window.SUPABASE_URL = "{{ supabase_url }}";
+    window.SUPABASE_ANON_KEY = "{{ supabase_key }}";
+</script>
+   
   </head>
   <body
     class="bg-gradient-to-br from-[#0f2744] via-[#1a3a5c] to-[#0f2744] min-h-screen"

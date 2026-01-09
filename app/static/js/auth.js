@@ -1,76 +1,31 @@
-// IMPORTANTE: NO exponer las credenciales aquí
-// Las credenciales deben venir del servidor Flask
-const SUPABASE_URL = 'https://zozdbgtykvbconmcdhux.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpvemRiZ3R5a3ZiY29ubWNkaHV4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY2OTI1MjcsImV4cCI6MjA3MjI2ODUyN30.CVxChXgChd551-RymWwn-1DQQBDm25avTT-dlWJuTlE';
+// app/static/js/auth.js
 
+// 1. Inicializar el cliente globalmente
 const { createClient } = supabase;
-const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Estas variables window.SUPABASE_... se definen en el HTML antes de cargar este script
+window.supabaseClient = createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 
-// Sidebar toggle functionality
-function toggleSidebar() {
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('sidebarOverlay');
-    sidebar.classList.toggle('sidebar-hidden');
-    overlay.classList.toggle('hidden');
-}
-const logoutBtn = document.getElementById("logout-btn");
+async function checkAuth() {
+    const { data: { session } } = await window.supabaseClient.auth.getSession();
+    const isLoginPage = window.location.pathname === '/'; // Ajusta si tu ruta de login es distinta
 
-if (logoutBtn) {
-  logoutBtn.addEventListener("click", () => {
-    // 1️⃣ Borrar sesión local (si usas login local o token)
-    localStorage.clear();
-    sessionStorage.clear();
-
-    // 2️⃣ Redirigir al login
-    window.location.href = "/login";
-  });
+    if (!session && !isLoginPage) {
+        window.location.href = '/';
+    } else if (session && isLoginPage) {
+        window.location.href = '/dashboard';
+    }
 }
 
-// Initialize menu toggle
-document.addEventListener('DOMContentLoaded', function() {
-    const menuToggle = document.getElementById('menuToggle');
-    if (menuToggle) {
-        menuToggle.addEventListener('click', toggleSidebar);
-    }
-
-    const sidebarOverlay = document.getElementById('sidebarOverlay');
-    if (sidebarOverlay) {
-        sidebarOverlay.addEventListener('click', toggleSidebar);
-    }
-
-    // Check authentication
+document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
 
-    // Setup logout button
+    // Lógica para el botón de cerrar sesión
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
-        logoutBtn.addEventListener('click', handleLogout);
+        logoutBtn.addEventListener('click', async () => {
+            await window.supabaseClient.auth.signOut();
+            localStorage.clear();
+            window.location.href = "/";
+        });
     }
 });
-
-// Check if user is authenticated
-async function checkAuth() {
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    
-    if (!session) {
-        // Redirect to login if not authenticated
-        window.location.href = '/';
-        return false;
-    }
-    
-    return true;
-}
-
-// Handle logout
-async function handleLogout() {
-    try {
-        await supabaseClient.auth.signOut();
-        window.location.href = '/';
-    } catch (error) {
-        console.error('Error al cerrar sesión:', error);
-    }
-}
-
-// Export for use in other scripts
-window.supabaseClient = supabaseClient;
-window.checkAuth = checkAuth;

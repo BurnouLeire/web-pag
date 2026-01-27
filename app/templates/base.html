@@ -3,7 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- El título puede ser dinámico -->
     <title>{% block title %}Gestión de Instrumentos{% endblock %}</title>
 
     <!-- Estilos -->
@@ -20,27 +19,32 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
     <script>
-    // Este es el puente: Flask llena estas variables desde el .env
-    window.SUPABASE_URL = "{{ supabase_url }}";
-    window.SUPABASE_ANON_KEY = "{{ supabase_key }}";
-</script>
-   
+      window.SUPABASE_URL = "{{ supabase_url }}";
+      window.SUPABASE_ANON_KEY = "{{ supabase_key }}";
+    </script>
   </head>
-  <body
-    class="bg-gradient-to-br from-[#0f2744] via-[#1a3a5c] to-[#0f2744] min-h-screen"
-  >
+  
+  <!-- CAMBIO 1: Fondo del body ahora es gris claro (casi blanco) y texto oscuro -->
+  <body class="bg-gray-50 min-h-screen text-gray-800 font-sans">
+    <div id="loading-screen">
+        <div class="spinner"></div>
+    </div>
+
     <!-- Sidebar -->
-    <!-- Nota: La lógica de 'sidebar-hidden' debe manejarse en tu JS (app.js) -->
-    <div
-      id="sidebar"
-      class="fixed left-0 top-0 h-screen w-64 bg-gradient-to-b from-[#0f2744] to-[#1a3a5c] border-r border-[#164ab8]/30 shadow-2xl z-40 transition-transform duration-300 md:translate-x-0 sidebar-hidden md:sidebar-show"
-    >
-      <!-- Logo/Header -->
-      <div class="p-6 border-b border-[#164ab8]/30">
+    <!-- CAMBIO 2: Sidebar blanco con borde gris suave -->
+    <!-- Sidebar -->
+<!-- Sidebar -->
+
+<!-- Sidebar -->
+<div
+  id="sidebar"
+  class="sidebar-hidden md:sidebar-show fixed left-0 top-0 h-screen w-64 bg-white border-r border-gray-200 shadow-xl z-40"
+>
+      <!-- Logo/Header Sidebar -->
+      <div class="p-6 border-b border-gray-100">
         <div class="flex items-center gap-3 mb-2">
-          <div
-            class="p-2 bg-gradient-to-br from-[#164ab8] to-[#f57e20] rounded-lg"
-          >
+          <!-- Icono con fondo azul -->
+          <div class="p-2 bg-blue-600 rounded-lg shadow-md">
             <svg
               class="w-6 h-6 text-white"
               fill="none"
@@ -56,8 +60,9 @@
             </svg>
           </div>
           <div>
-            <h1 class="text-white font-bold text-lg">Instruments</h1>
-            <p class="text-[#7a9cc6] text-xs">v1.0</p>
+            <!-- Texto del logo oscuro -->
+            <h1 class="text-gray-800 font-bold text-lg">PROYECTO RV</h1>
+            <p class="text-gray-500 text-xs">v1.0</p>
           </div>
         </div>
       </div>
@@ -65,62 +70,88 @@
       <!-- Nav Items -->
       <nav class="p-4 space-y-2">
         <!-- 
-              Cambiamos los <button> por <a> (enlaces)
-              Usamos una variable 'active_page' (que pasarás desde Flask) para saber qué botón resaltar 
-            -->
+           CAMBIO 3: Estilos de botones
+           - Activo: Azul sólido (bg-blue-600 text-white)
+           - Inactivo: Texto gris, hover azul muy claro (text-gray-600 hover:bg-blue-50)
+        -->
+        
+        <!-- Botón Dashboard -->
         <a
           href="{{ url_for('dashboard.dashboard') }}"
-          class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all duration-200 {% if active_page == 'dashboard' %} bg-gradient-to-r from-[#164ab8] to-transparent text-white {% else %} text-[#b0c4de] hover:bg-[#164ab8]/20 {% endif %}"
+          class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all duration-200 
+          {% if active_page == 'dashboard' %} 
+            bg-blue-600 text-white shadow-md shadow-blue-500/30
+          {% else %} 
+            text-gray-600 hover:bg-blue-50 hover:text-blue-700 
+          {% endif %}"
         >
           <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-            <path
-              d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4z"
-            />
-            <path
-              fill-rule="evenodd"
-              d="M3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zm8 0a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"
-              clip-rule="evenodd"
-            />
+            <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4z"/>
+            <path fill-rule="evenodd" d="M3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zm8 0a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" clip-rule="evenodd"/>
           </svg>
           <span>Dashboard</span>
         </a>
 
+        <!-- Botón Laboratorio -->
         <a
           href="{{ url_for('laboratorio.index') }}"
-          class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all duration-200 {% if active_page == 'laboratorio' %} bg-gradient-to-r from-[#164ab8] to-transparent text-white {% else %} text-[#b0c4de] hover:bg-[#164ab8]/20 {% endif %}"
+          class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all duration-200 
+          {% if active_page == 'laboratorio' %} 
+            bg-blue-600 text-white shadow-md shadow-blue-500/30
+          {% else %} 
+            text-gray-600 hover:bg-blue-50 hover:text-blue-700 
+          {% endif %}"
         >
           <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-            <path
-              fill-rule="evenodd"
-              d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z"
-              clip-rule="evenodd"
-            />
+            <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
           </svg>
           <span>Laboratorio</span>
         </a>
-
-        
       </nav>
 
-      <!-- Spacer -->
+      <!-- Spacer: Empuja todo hacia abajo -->
       <div class="flex-1"></div>
 
-      <!-- Footer -->
-      <div class="p-4 border-t border-[#164ab8]/30 space-y-2">
-        <!-- 
-              Este botón probablemente deba estar en tu 'auth.js' 
-              Lo dejamos como botón ya que no navega, sino que ejecuta una acción.
-            -->
+      <!-- Footer Sidebar: Perfil + Logout -->
+      <div class="p-4 border-t border-gray-100">
+        
+        <!-- SECCIÓN DE PERFIL DE USUARIO (NUEVO) -->
+        <!-- Usamos 'hidden' por defecto para que no se vea vacío mientras carga -->
+        <div id="user-profile-card" class="flex items-center gap-3 mb-3 p-2 bg-blue-50/50 rounded-lg border border-blue-100 hidden">
+            <!-- Icono/Avatar con iniciales -->
+            <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold shadow-sm">
+                <span id="user-initials">U</span>
+            </div>
+            
+            <!-- Información de texto -->
+            <div class="flex-1 min-w-0 overflow-hidden">
+                <p id="user-email" class="text-sm font-semibold text-gray-800 truncate">
+                    Cargando...
+                </p>
+                <div class="flex items-center gap-1">
+                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                    <p class="text-xs text-gray-500">Conectado</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botón Logout (Tu código existente, ligeramente ajustado) -->
         <button
           id="logout-btn"
-          class="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-[#ff9999] hover:bg-[#e74c3c]/20 font-medium transition-all duration-200"
+          class="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-red-500 hover:bg-red-50 hover:text-red-600 font-medium transition-all duration-200 border border-transparent hover:border-red-100"
         >
           <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-            <path
-              fill-rule="evenodd"
-              d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
-              clip-rule="evenodd"
-            />
+            <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
+          </svg>
+          <span>Cerrar Sesión</span>
+        </button>
+      </div>
+        </div>
+
+        <!-- Botón Cerrar Sesión -->
+        <button id="logout-btn" class="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-red-500 hover:bg-red-50 hover:text-red-600 font-medium transition-all duration-200">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/>
           </svg>
           <span>Cerrar Sesión</span>
         </button>
@@ -130,39 +161,27 @@
     <!-- Overlay para móvil -->
     <div
       id="sidebarOverlay"
-      class="fixed inset-0 bg-black/50 z-30 md:hidden hidden"
+      class="fixed inset-0 bg-gray-800/50 z-30 md:hidden hidden backdrop-blur-sm"
       onClick="toggleSidebar()"
     ></div>
 
     <!-- Main Content -->
-    <div
-      class="md:ml-64 min-h-screen flex flex-col transition-all duration-300"
-    >
-      <!-- Top Bar -->
-      <header
-        class="bg-gradient-to-r from-[#164ab8] to-[#1a5fd4] shadow-lg p-4 md:p-6"
-      >
+    <div class="md:ml-64 min-h-screen flex flex-col transition-all duration-300">
+      
+      <!-- Top Bar / Header -->
+      <!-- CAMBIO 4: Mantenemos el header azul para el contraste, pero más limpio -->
+      <header class="bg-blue-600 shadow-md p-4 md:p-6">
         <div class="flex items-center justify-between">
           <button
             id="menuToggle"
-            class="md:hidden p-2 hover:bg-[#164ab8]/30 rounded-lg transition"
+            class="md:hidden p-2 text-white hover:bg-blue-700 rounded-lg transition"
           >
-            <svg
-              class="w-6 h-6 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 6h16M4 12h16M4 18h16"
-              />
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
             </svg>
           </button>
-          <!-- El título de la página también puede ser dinámico -->
-          <h1 id="pageTitle" class="text-2xl font-bold text-white">
+          
+          <h1 id="pageTitle" class="text-2xl font-bold text-white tracking-tight">
             {% block page_title %}Dashboard{% endblock %}
           </h1>
           <div class="w-10"></div>
@@ -170,28 +189,53 @@
       </header>
 
       <!-- Content Area -->
-      <main class="flex-1 p-4 md:p-6">
-        <!-- 
-              Este es el bloque principal donde las plantillas hijas
-              insertarán su contenido específico.
-            -->
+      <main class="flex-1 p-4 md:p-8">
+        <!-- El contenido hijo se renderizará aquí sobre fondo blanco/gris -->
         {% block content %}{% endblock %}
       </main>
     </div>
 
-    <!-- 
-      JavaScript principal (para cosas como el toggle del sidebar)
-      Deberías tener este archivo en static/js/app.js
-    -->
+    <!-- Scripts -->
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
     <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
-    <!-- En base.html, dentro del <head> o antes del cierre de </body> -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1"></script>
-    <!-- 
-      Bloque para scripts específicos de cada página 
-      (como los gráficos del dashboard)
-    -->
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1"></script>
+    <!-- Script del Sidebar (inline) -->
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+
+        function toggleSidebar() {
+          sidebar.classList.toggle('sidebar-hidden');
+          sidebar.classList.toggle('sidebar-show');
+          overlay.classList.toggle('hidden');
+        }
+
+        if (menuToggle) {
+          menuToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            toggleSidebar();
+          });
+        }
+
+        if (overlay) {
+          overlay.addEventListener('click', toggleSidebar);
+        }
+
+        const navButtons = document.querySelectorAll('.nav-btn');
+        navButtons.forEach(btn => {
+          btn.addEventListener('click', function() {
+            if (window.innerWidth < 768) {
+              toggleSidebar();
+            }
+          });
+        });
+      });
+    </script>
+    
     {% block scripts %}{% endblock %}
   </body>
 </html>

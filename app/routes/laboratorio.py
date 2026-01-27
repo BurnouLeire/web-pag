@@ -31,278 +31,192 @@ def index():
         supabase_key=os.getenv('SUPABASE_KEY', '')
     )
 
-
 def limpiar_features(features_dict, feature_cols):
     """
-    Limpia las features reemplazando NaN, None e infinitos con valores seguros.
+    Limpia features asegurando float y quitando infinitos.
     """
     features_limpias = {}
-    
     for col in feature_cols:
         valor = features_dict.get(col, 0)
-        
-        # Convertir a float primero
         try:
             valor_float = float(valor) if valor is not None else 0.0
         except (ValueError, TypeError):
             valor_float = 0.0
         
-        # Reemplazar NaN e infinitos
-        if pd.isna(valor_float) or np.isnan(valor_float):
+        if pd.isna(valor_float) or np.isnan(valor_float) or np.isinf(valor_float):
             valor_float = 0.0
-        elif np.isinf(valor_float):
-            valor_float = 0.0
-        
         features_limpias[col] = valor_float
-    
     return features_limpias
 
 
-def calcular_features_historicas(historial_hasta_punto, codigo):
+def calcular_edad_meses(fecha_actual_dt, fecha_primera_dt):
     """
-    Calcula features usando solo el historial disponible hasta cierto punto.
-    MANEJA VALORES FALTANTES DE FORMA ROBUSTA.
+    Replica EXACTAMENTE tu fórmula de entrenamiento:
+    ((fecha_actual - primera_fecha).days / 30.44).round(1)
+    """
+    dias = (fecha_actual_dt - fecha_primera_dt).days
+    # Si por error de hora la fecha es anterior, devolvemos 0
+    if dias < 0: return 0.0
+    
+    edad_meses = round(dias / 30.44, 1)
+    return edad_meses
+
+
+def calcular_features_historicas_exactas(
+    historial_item, 
+    historial_previo_item, 
+    datos_estaticos, 
+    fecha_primera_dt
+):
+    """
+    Calcula features para un punto histórico usando la PRIMERA FECHA como ancla.
     """
     try:
-        # Si solo hay 1 calibración, usar valores por defecto
-        if len(historial_hasta_punto) <= 1:
-            features = {
-                'dias_desde_ultima': 0,
-                'calibraciones_totales': 1,
-                'promedio_dias': 0,
-                'desv_std_dias': 0,
-                'min_dias': 0,
-                'max_dias': 0,
-                'temperatura': historial_hasta_punto[0].get('temperatura') or 20,
-                'humedad': historial_hasta_punto[0].get('humedad') or 50,
-                'dias_ultimo_intervalo': 0
-            }
-            return features
+        # 1. Fechas
+        fecha_hist = datetime.fromisoformat(historial_item['fecha_calibracion'].replace('Z', '+00:00'))
         
-        # Calcular intervalos entre calibraciones
-        intervalos = []
-        for i in range(1, len(historial_hasta_punto)):
-            try:
-                fecha_actual = datetime.fromisoformat(
-                    historial_hasta_punto[i]['fecha_calibracion'].replace('Z', '+00:00')
-                )
-                fecha_anterior = datetime.fromisoformat(
-                    historial_hasta_punto[i-1]['fecha_calibracion'].replace('Z', '+00:00')
-                )
-                dias = (fecha_actual - fecha_anterior).days
-                
-                # Validar que el intervalo sea razonable (entre 1 y 3650 días)
-                if 1 <= dias <= 3650:
-                    intervalos.append(dias)
-                    
-            except Exception as e:
-                print(f"  ⚠️ Error calculando intervalo en índice {i}: {e}")
-                continue
+        # 2. Mes
+        mes = fecha_hist.month
         
-        # Si no hay intervalos válidos, usar valores por defecto
-        if not intervalos:
-            intervalos = [0]
+        # 3. Días desde previa (Lógica 'Real' de Colab)
+        dias_desde_prev = 0
+        if historial_previo_item:
+            fecha_prev = datetime.fromisoformat(historial_previo_item['fecha_calibracion'].replace('Z', '+00:00'))
+            dias_desde_prev = (fecha_hist - fecha_prev).days
         
-        # Calcular estadísticas de forma segura
-        ultima_calibracion = historial_hasta_punto[-1]
-        
-        try:
-            fecha_ultima = datetime.fromisoformat(
-                ultima_calibracion['fecha_calibracion'].replace('Z', '+00:00')
-            )
-            dias_desde_ultima = max(0, (datetime.now() - fecha_ultima).days)
-        except:
-            dias_desde_ultima = 0
-        
-        # Temperatura y humedad con valores por defecto
-        temperatura = ultima_calibracion.get('temperatura')
-        if temperatura is None or pd.isna(temperatura):
-            temperatura = 20
-        
-        humedad = ultima_calibracion.get('humedad')
-        if humedad is None or pd.isna(humedad):
-            humedad = 50
-        
-        # Construir features de forma segura
+        # 4. EDAD OPERACIONAL EN MESES (Tu fórmula)
+        edad_operacional = calcular_edad_meses(fecha_hist, fecha_primera_dt)
+
+        # 5. Datos Climáticos
+        temp = historial_item.get('temperatura') 
+        hum = historial_item.get('humedad')
+        if temp is None: temp = datos_estaticos.get('temperatura', 20)
+        if hum is None: hum = datos_estaticos.get('humedad', 50)
+
+        # 6. Vector
         features = {
-            'dias_desde_ultima': dias_desde_ultima,
-            'calibraciones_totales': len(historial_hasta_punto),
-            'promedio_dias': float(np.mean(intervalos)),
-            'desv_std_dias': float(np.std(intervalos)) if len(intervalos) > 1 else 0.0,
-            'min_dias': float(min(intervalos)),
-            'max_dias': float(max(intervalos)),
-            'temperatura': float(temperatura),
-            'humedad': float(humedad),
-            'dias_ultimo_intervalo': float(intervalos[-1]) if intervalos else 0.0
+            'marca_id': datos_estaticos.get('marca_id', 0),
+            'incertidumbre': datos_estaticos.get('incertidumbre', 0),
+            'temperatura': float(temp),
+            'humedad': float(hum),
+            'num_calibraciones': 0, # Se llenará en el bucle
+            'edad_operacional': float(edad_operacional),
+            'dias_desde_prev': float(dias_desde_prev),
+            'mes': float(mes)
         }
         
-        # Validar que no haya NaN
-        for key, value in features.items():
-            if pd.isna(value) or np.isnan(value) or np.isinf(value):
-                print(f"  ⚠️ Valor inválido en {key}: {value}, reemplazando con 0")
-                features[key] = 0.0
-        
-        return features
+        return features, fecha_hist
         
     except Exception as e:
-        print(f"❌ Error crítico calculando features históricas: {e}")
-        import traceback
-        traceback.print_exc()
-        
-        # Retornar features por defecto seguras
-        return {
-            'dias_desde_ultima': 0.0,
-            'calibraciones_totales': 1.0,
-            'promedio_dias': 0.0,
-            'desv_std_dias': 0.0,
-            'min_dias': 0.0,
-            'max_dias': 0.0,
-            'temperatura': 20.0,
-            'humedad': 50.0,
-            'dias_ultimo_intervalo': 0.0
-        }
+        print(f"⚠️ Error cálculo histórico: {e}")
+        return {}, datetime.now()
 
 
 @bp.route("/buscar", methods=["POST"])
 def buscar_instrumento():
-    """Endpoint para buscar instrumento y hacer predicción completa"""
-    
     if supabase_service is None:
-        return jsonify({
-            'error': 'Servicio de base de datos no disponible. Verifica las credenciales en .env'
-        }), 503
+        return jsonify({'error': 'BD no disponible'}), 503
     
     try:
         data = request.json
         codigo = data.get('codigo', '').strip().upper()
         
-        if not codigo:
-            return jsonify({'error': 'Código de instrumento requerido'}), 400
+        if not codigo: return jsonify({'error': 'Código requerido'}), 400
         
         print(f"\n{'='*60}")
-        print(f"🔍 BUSCANDO INSTRUMENTO: {codigo}")
+        print(f"🔍 PROCESANDO: {codigo}")
         print(f"{'='*60}")
         
-        # 1. Buscar instrumento en Supabase
+        # 1. Buscar instrumento y obtener historial
         instrumento = supabase_service.buscar_instrumento(codigo)
-        if not instrumento:
-            return jsonify({'error': f'Instrumento "{codigo}" no encontrado'}), 404
+        if not instrumento: return jsonify({'error': 'Instrumento no encontrado'}), 404
         
-        print(f"✓ Instrumento encontrado: {instrumento.get('codigo')}")
+        historial_raw = supabase_service.obtener_historial_completo(codigo)
+        # ORDENAR (Vital para definir la "Primera Fecha")
+        historial = sorted(historial_raw, key=lambda x: x['fecha_calibracion'])
         
-        # 2. Obtener historial completo (ordenado cronológicamente)
-        historial = supabase_service.obtener_historial_completo(codigo)
-        print(f"✓ Historial obtenido: {len(historial)} calibraciones")
+        if len(historial) < 1: return jsonify({'error': 'Sin historial'}), 404
         
-        if len(historial) < 1:
-            return jsonify({'error': 'No hay historial de calibraciones para este instrumento'}), 404
+        # -------------------------------------------------------------------
+        # DEFINIR EL ANCLA TEMPORAL (Tu lógica de agregar_variables)
+        # -------------------------------------------------------------------
+        FECHA_PRIMERA = datetime.fromisoformat(historial[0]['fecha_calibracion'].replace('Z', '+00:00'))
+        print(f"✓ Fecha Inicial (Edad 0): {FECHA_PRIMERA.date()}")
+
+        # 2. Obtener datos estáticos y Estado Actual
+        features_supa = supabase_service.extraer_features(instrumento, codigo)
         
-        # 3. Extraer features del estado actual
-        features = supabase_service.extraer_features(instrumento, codigo)
-        print(f"✓ Features extraídas (sin limpiar): {features}")
+        # SOBREESCRIBIR EDAD OPERACIONAL CON TU FÓRMULA (MESES)
+        # La última calibración en el historial define el estado "actual" para la predicción futura
+        fecha_ultima = datetime.fromisoformat(historial[-1]['fecha_calibracion'].replace('Z', '+00:00'))
+        edad_actual_meses = calcular_edad_meses(fecha_ultima, FECHA_PRIMERA)
         
-        # 4. LIMPIAR FEATURES (eliminar NaN, None, infinitos)
-        features_limpias = limpiar_features(features, feature_cols)
-        print(f"✓ Features limpias: {features_limpias}")
+        # Actualizamos el diccionario de features con la edad correcta en MESES
+        features_supa['edad_operacional'] = edad_actual_meses
         
-        # 5. Validar que tenemos todas las features necesarias
-        features_faltantes = [col for col in feature_cols if col not in features_limpias]
-        if features_faltantes:
-            print(f"⚠️ Features faltantes: {features_faltantes}")
-            return jsonify({'error': f'Features faltantes: {features_faltantes}'}), 400
-        
-        # 6. Hacer predicción ACTUAL (próxima calibración)
-        if modelo is None:
-            return jsonify({'error': 'Modelo no cargado'}), 500
-        
+        features_limpias = limpiar_features(features_supa, feature_cols)
+        print(f"✓ Estado Actual -> Fecha: {fecha_ultima.date()} | Edad: {edad_actual_meses} meses")
+
+        # 3. Predicción Futura (Próxima calibración)
+        if modelo is None: return jsonify({'error': 'Modelo no cargado'}), 500
         try:
-            features_array = np.array([features_limpias[col] for col in feature_cols]).reshape(1, -1)
-            print(f"✓ Array de features: {features_array}")
-            
-            prediccion_raw = modelo.predict(features_array)[0]
-            print(f"✓ Predicción raw: {prediccion_raw}")
-            
-            # Validar predicción
-            if pd.isna(prediccion_raw) or np.isnan(prediccion_raw) or np.isinf(prediccion_raw):
-                print(f"❌ Predicción inválida: {prediccion_raw}")
-                return jsonify({'error': 'El modelo generó una predicción inválida (NaN o infinito)'}), 500
-            
-            dias_predichos = max(1, int(round(prediccion_raw)))  # Mínimo 1 día
-            print(f"✓ Predicción final: {dias_predichos} días")
-            
+            f_arr = np.array([features_limpias[col] for col in feature_cols]).reshape(1, -1)
+            pred_futura = max(1, int(round(modelo.predict(f_arr)[0])))
+            fecha_estimada = fecha_ultima + timedelta(days=pred_futura)
         except Exception as e:
-            print(f"❌ Error al hacer predicción: {e}")
-            import traceback
-            traceback.print_exc()
-            return jsonify({'error': f'Error al predecir: {str(e)}'}), 500
+            return jsonify({'error': str(e)}), 500
         
-        # 7. Calcular fecha estimada
-        try:
-            fecha_ultima = datetime.fromisoformat(
-                instrumento['fecha_calibracion'].replace('Z', '+00:00')
-            )
-            fecha_estimada = fecha_ultima + timedelta(days=dias_predichos)
-        except Exception as e:
-            print(f"❌ Error calculando fecha estimada: {e}")
-            fecha_estimada = datetime.now() + timedelta(days=dias_predichos)
-        
-        # 8. GENERAR PREDICCIONES HISTÓRICAS PARA EL GRÁFICO
-        print(f"\n{'='*60}")
-        print(f"📊 GENERANDO PREDICCIONES HISTÓRICAS")
-        print(f"{'='*60}")
+        # 4. RECONSTRUCCIÓN HISTÓRICA
+        print(f"\n📊 RECONSTRUYENDO HISTORIA (Escala: Meses / 30.44)")
+        print(f"  {'FECHA':<11} | {'DIAS PREV':<10} | {'EDAD (Mes)':<10} | {'PREDICCIÓN'}")
+        print(f"  {'-'*11}-+-{'-'*10}-+-{'-'*10}-+-{'-'*10}")
         
         predicciones_historicas = []
+        predicciones_historicas.append(0) # El punto 0 siempre es 0
 
-        # ✅ PRIMERA CALIBRACIÓN: Siempre 0 (punto de origen)
-        predicciones_historicas.append(0)
-        print(f"  [1] Primera calibración: 0 días (punto de inicio)")
+        # Datos estáticos
+        datos_estaticos = {
+            'marca_id': features_limpias.get('marca_id', 0),
+            'incertidumbre': features_limpias.get('incertidumbre', 0),
+            'temperatura': features_limpias.get('temperatura', 20),
+            'humedad': features_limpias.get('humedad', 50)
+        }
 
-        # ✅ DESDE LA SEGUNDA CALIBRACIÓN: Empezar a predecir
+        # Iteramos desde el segundo elemento
         for i in range(1, len(historial)):
             try:
-                # Obtener solo el historial disponible HASTA este punto
-                historial_hasta_aqui = historial[:i+1]
+                item_actual = historial[i]
+                item_previo = historial[i-1]
                 
-                # Calcular features usando SOLO ese historial limitado
-                features_hist = calcular_features_historicas(historial_hasta_aqui, codigo)
+                # Calcular features usando la FECHA_PRIMERA como ancla
+                f_hist, fecha_h = calcular_features_historicas_exactas(
+                    item_actual,
+                    item_previo,
+                    datos_estaticos,
+                    FECHA_PRIMERA
+                )
                 
-                # Limpiar features históricas
-                features_hist_limpias = limpiar_features(features_hist, feature_cols)
+                f_hist['num_calibraciones'] = i + 1
                 
-                # Hacer predicción
-                features_hist_array = np.array([features_hist_limpias[col] for col in feature_cols]).reshape(1, -1)
-                prediccion_raw = modelo.predict(features_hist_array)[0]
+                # Limpiar y Predecir
+                f_clean = limpiar_features(f_hist, feature_cols)
+                f_arr = np.array([f_clean[col] for col in feature_cols]).reshape(1, -1)
                 
-                # Validar y convertir
-                if pd.isna(prediccion_raw) or np.isnan(prediccion_raw) or np.isinf(prediccion_raw):
-                    # Usar promedio de predicciones válidas anteriores
-                    predicciones_validas = [p for p in predicciones_historicas if p > 0]
-                    prediccion_dias = int(np.mean(predicciones_validas)) if predicciones_validas else 30
-                    print(f"  [{i+1}] ⚠️ Predicción inválida, usando promedio: {prediccion_dias} días")
-                else:
-                    prediccion_dias = max(1, int(round(prediccion_raw)))
-                    print(f"  [{i+1}] Calibración {i+1}: {prediccion_dias} días predichos")
+                raw_pred = modelo.predict(f_arr)[0]
+                val_pred = max(1, int(round(raw_pred)))
                 
-                predicciones_historicas.append(prediccion_dias)
+                # LOG
+                dias_prev_log = int(f_clean.get('dias_desde_prev', 0))
+                edad_log = f"{f_clean.get('edad_operacional', 0):.1f}"
+                print(f"  {fecha_h.strftime('%Y-%m-%d'):<11} | {dias_prev_log:<10} | {edad_log:<10} | {val_pred}")
                 
-            except Exception as e:
-                print(f"  [{i+1}] ❌ Error en calibración {i+1}: {e}")
-                
-                # Usar promedio de predicciones anteriores válidas
-                predicciones_validas = [p for p in predicciones_historicas if p > 0]
-                if predicciones_validas:
-                    promedio = int(np.mean(predicciones_validas))
-                    predicciones_historicas.append(promedio)
-                    print(f"  [{i+1}] ⚠️ Usando promedio: {promedio} días")
-                else:
-                    predicciones_historicas.append(30)  # Valor por defecto razonable
-                    print(f"  [{i+1}] ⚠️ Usando valor por defecto: 30 días")
+                predicciones_historicas.append(val_pred)
 
-        print(f"\n✓ Predicciones generadas: {len(predicciones_historicas)} valores")
-        print(f"  Valores: {predicciones_historicas}")
-        print(f"{'='*60}\n")
-        
-        # 9. Preparar respuesta completa
+            except Exception as e:
+                print(f"  [{i}] Error: {e}")
+                predicciones_historicas.append(0)
+
+        # 5. Respuesta Final
         response = {
             'instrumento': {
                 'codigo': instrumento['codigo'],
@@ -315,69 +229,36 @@ def buscar_instrumento():
                 'humedad': instrumento.get('humedad'),
             },
             'prediccion': {
-                'dias_hasta_siguiente': dias_predichos,
-                'meses_aproximados': round(dias_predichos / 30.44, 1),
-                'semanas_aproximadas': round(dias_predichos / 7, 0),
+                'dias_hasta_siguiente': pred_futura,
+                'meses_aproximados': round(pred_futura / 30.44, 1),
+                'semanas_aproximadas': round(pred_futura / 7, 0),
                 'fecha_estimada': fecha_estimada.isoformat()
             },
             'historial': [
-                {
-                    'fecha_calibracion': h['fecha_calibracion'],
-                    'codigo': h['codigo']
-                } 
+                {'fecha_calibracion': h['fecha_calibracion'], 'codigo': h['codigo']} 
                 for h in historial
             ],
             'predicciones_historicas': predicciones_historicas,
             'features': features_limpias
         }
         
-        print(f"✓ Respuesta preparada exitosamente")
-        print(f"  - Historial: {len(response['historial'])} registros")
-        print(f"  - Predicciones: {len(response['predicciones_historicas'])} valores")
-        
         return jsonify(response), 200
         
     except Exception as e:
-        print(f"\n❌ ERROR CRÍTICO en buscar_instrumento: {e}")
+        print(f"\n❌ ERROR CRÍTICO: {e}")
         import traceback
         traceback.print_exc()
-        return jsonify({'error': f'Error interno del servidor: {str(e)}'}), 500
-
+        return jsonify({'error': str(e)}), 500
 
 @bp.route("/predict", methods=["POST"])
 def predict():
-    """Endpoint simple para predicción (compatible con API directa)"""
     try:
-        if modelo is None:
-            return jsonify({'error': 'Modelo no cargado'}), 500
-
+        if modelo is None: return jsonify({'error': 'Modelo no cargado'}), 500
         data = request.json
-        
-        # Validar campos requeridos
-        missing = [f for f in feature_cols if f not in data]
-        if missing:
-            return jsonify({'error': f'Faltan campos: {missing}'}), 400
-
-        # Limpiar features
         features_limpias = limpiar_features(data, feature_cols)
-        
-        # Hacer predicción
         features_array = np.array([features_limpias[col] for col in feature_cols]).reshape(1, -1)
         pred = modelo.predict(features_array)[0]
-        
-        # Validar resultado
-        if pd.isna(pred) or np.isnan(pred) or np.isinf(pred):
-            return jsonify({'error': 'Predicción inválida (NaN o infinito)'}), 500
-        
-        dias = max(1, int(round(pred)))
-
-        return jsonify({
-            "dias_hasta_siguiente": dias,
-            "meses_aproximados": round(dias / 30.44, 1)
-        })
-        
+        dias = max(1, int(round(pred))) if not pd.isna(pred) else 0
+        return jsonify({"dias_hasta_siguiente": dias, "meses_aproximados": round(dias / 30.44, 1)})
     except Exception as e:
-        print(f"Error en predict: {e}")
-        import traceback
-        traceback.print_exc()
         return jsonify({'error': str(e)}), 500

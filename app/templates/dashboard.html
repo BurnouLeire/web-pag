@@ -1,88 +1,127 @@
 {% extends "base.html" %} 
-{% block title %}Dashboard - IA Metrología RIVALESA{% endblock %} 
-{% block page_title %}Panel de Optimización Predictiva{% endblock %} 
+
+{% block title %}Dashboard RIVALESA - Métricas de Calibración{% endblock %} 
+{% block page_title %}Dashboard de Optimización{% endblock %} 
 
 {% block content %}
-<div class="space-y-6 max-w-[1400px] mx-auto px-4">
+<di  class="space-y-6 max-w-[1600px] mx-auto pb-10">
   
-  <!-- Fila de KPIs de Inteligencia Artificial (Validación de Requerimientos) -->
+  <!-- ============================================= -->
+  <!-- 1. Fila de KPIs (Métricas Clave)              -->
+  <!-- ============================================= -->
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
     
-    <!-- KPI: Precisión del Modelo (Req 3.2.2.1.4) -->
-    <div class="bg-gradient-to-br from-[#164ab8]/20 to-[#1a3a5c]/40 border border-[#164ab8]/40 rounded-xl p-6 backdrop-blur-md">
+    <!-- KPI 1: Precisión del Modelo (R²) -->
+    <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
       <div class="flex justify-between items-start">
         <div>
-          <p class="text-[#b0c4de] text-sm font-medium">Precisión del Modelo (R²)</p>
-          <h3 class="text-4xl font-bold text-white mt-2" id="r2-score">0.00</h3>
+          <p class="text-gray-500 text-sm font-bold uppercase tracking-wide">Precisión del Modelo (R²)</p>
+          <h3 class="text-4xl font-extrabold text-gray-800 mt-2" id="r2-score">--.--</h3>
         </div>
-        <div class="p-3 bg-[#27ae60]/20 rounded-lg text-[#52be80]">
-            <span class="font-bold">IA</span>
+        <div class="p-3 bg-green-50 border border-green-100 rounded-lg text-green-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path></svg>
         </div>
       </div>
-      <p class="text-[#52be80] text-xs mt-2">● Objetivo superado (> 0.80)</p>
+      <p class="text-green-600 text-sm font-medium mt-3 flex items-center gap-1">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        Objetivo superado (> 0.80)
+      </p>
     </div>
 
-    <!-- KPI: Volumen de Datos (Figura 18) -->
-    <div class="bg-gradient-to-br from-[#164ab8]/20 to-[#1a3a5c]/40 border border-[#164ab8]/40 rounded-xl p-6 backdrop-blur-md">
+    <!-- KPI 2: Volumen de Datos -->
+    <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
       <div class="flex justify-between items-start">
         <div>
-          <p class="text-[#b0c4de] text-sm font-medium">Certificados Procesados</p>
-          <h3 class="text-4xl font-bold text-white mt-2" id="total-certs">0</h3>
+          <p class="text-gray-500 text-sm font-bold uppercase tracking-wide">Certificados Procesados</p>
+          <h3 class="text-4xl font-extrabold text-gray-800 mt-2" id="total-certs">0</h3>
         </div>
-        <div class="p-3 bg-[#164ab8]/30 rounded-lg">
-          <svg class="w-6 h-6 text-[#b0c4de]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+        <div class="p-3 bg-blue-50 border border-blue-100 rounded-lg text-blue-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+          </svg>
         </div>
       </div>
-      <p class="text-[#7a9cc6] text-xs mt-2">Base de datos histórica Rivalesa S.A.</p>
+      <p class="text-gray-400 text-xs mt-3 font-medium">Histórico de calibraciones en BD</p>
     </div>
 
-    <!-- KPI: Optimización (Título de la Tesis) -->
-    <div class="bg-gradient-to-br from-[#f57e20]/20 to-[#e67e22]/20 border border-[#f57e20]/40 rounded-xl p-6 backdrop-blur-md">
-      <div class="flex justify-between items-start">
-        <div>
-          <p class="text-[#b0c4de] text-sm font-medium">Días Optimizados</p>
-          <h3 class="text-4xl font-bold text-[#f57e20] mt-2" id="days-optimized">+0</h3>
-        </div>
-        <div class="p-3 bg-[#f57e20]/30 rounded-lg">
-            <svg class="w-6 h-6 text-[#f57e20]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
-        </div>
-      </div>
-      <p class="text-[#ffd699] text-xs mt-2">Eficiencia en frecuencia de calibración</p>
-    </div>
   </div>
 
-  <!-- Gráficos -->
+  <!-- ============================================= -->
+  <!-- 2. Sección de Gráficos                        -->
+  <!-- ============================================= -->
   <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-    <div class="bg-[#1a3a5c]/80 backdrop-blur-md p-6 rounded-xl border border-[#164ab8]/30">
-      <h3 class="text-xl font-bold text-white mb-6">Volumen Mensual de Calibración</h3>
-      <div class="relative h-80">
+    
+    <!-- GRÁFICO 1: Barras con Selector de Año (MODIFICADO) -->
+    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col">
+      
+      <!-- Cabecera Flexible: Título + Selector -->
+      <div class="flex flex-row justify-between items-center mb-6">
+          <h3 class="text-lg font-bold text-gray-800 border-l-4 border-blue-600 pl-3">
+            Volumen Mensual de Instrumentos
+          </h3>
+          
+          <!-- ESTE ES EL SELECTOR QUE USA EL JS -->
+          <div class="relative">
+              <select id="yearFilter" class="bg-gray-50 border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pr-8 shadow-sm cursor-pointer outline-none">
+                  <option>Cargando...</option>
+              </select>
+          </div>
+      </div>
+
+      <div class="relative h-80 w-full">
         <canvas id="histogramChart"></canvas>
       </div>
     </div>
-    <div class="bg-[#1a3a5c]/80 backdrop-blur-md p-6 rounded-xl border border-[#164ab8]/30">
-      <h3 class="text-xl font-bold text-white mb-6">Equipos por Categoría</h3>
-      <div class="relative h-80">
+
+    <!-- GRÁFICO 2: Dona (Sin cambios) -->
+    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col">
+      <h3 class="text-lg font-bold text-gray-800 mb-6 border-l-4 border-blue-600 pl-3">
+        Distribución por Tipo de Instrumento
+      </h3>
+      <div class="relative h-80 w-full flex justify-center items-center">
         <canvas id="pieChart"></canvas>
       </div>
     </div>
   </div>
 
-  <!-- Tabla de Optimización (Cerebro del Proyecto) -->
-  <div class="bg-[#1a3a5c]/80 backdrop-blur-md p-6 rounded-xl border border-[#164ab8]/30">
-    <h3 class="text-xl font-bold text-white mb-6">Análisis de Optimización por Tipo de Instrumento</h3>
-    <div class="overflow-x-auto">
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="border-b border-[#164ab8]/50 text-[#b0c4de] uppercase text-xs">
-            <th class="text-left py-3 px-4">Tipo de Instrumento</th>
-            <th class="text-center py-3 px-4">Población</th>
-            <th class="text-center py-3 px-4">Intervalo Std.</th>
-            <th class="text-center py-3 px-4 font-bold text-[#52be80]">Intervalo Predicho IA</th>
-            <th class="text-center py-3 px-4">Confianza del Modelo</th>
+  <!-- ============================================= -->
+  <!-- 3. Tabla de Optimización Detallada            -->
+  <!-- ============================================= -->
+  <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+    <div class="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <h3 class="text-lg font-bold text-gray-800 border-l-4 border-green-500 pl-3">
+        Análisis de Intervalos: Estándar vs. IA
+      </h3>
+      <span class="bg-blue-50 text-blue-700 text-xs font-bold px-3 py-1 rounded-full border border-blue-100">
+        Datos actualizados de Supabase
+      </span>
+    </div>
+
+    <div class="overflow-x-auto rounded-lg border border-gray-100">
+      <table class="w-full text-sm text-left">
+        <thead class="bg-gray-50 text-gray-600 uppercase text-xs font-bold tracking-wider border-b border-gray-200">
+          <tr>
+            <th class="py-4 px-6">Tipo de Instrumento</th>
+            <th class="py-4 px-6 text-center">Total Equipos</th>
+            <th class="py-4 px-6 text-center text-gray-500">Intervalo Std.</th>
+            <!-- Columna destacada -->
+            <th class="py-4 px-6 text-center text-green-700 bg-green-50/60">Intervalo IA</th>
+            <th class="py-4 px-6 text-center">Confianza Modelo</th>
           </tr>
         </thead>
-        <tbody id="typeTable">
-            <!-- Se llena con dashboard.js -->
+        <tbody id="typeTable" class="divide-y divide-gray-100 text-gray-700 bg-white">
+            <!-- Estado de carga inicial -->
+            <tr>
+                <td colspan="5" class="text-center py-8 text-gray-400 italic">
+                    <div class="flex justify-center items-center gap-2">
+                        <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Conectando con Supabase...
+                    </div>
+                </td>
+            </tr>
         </tbody>
       </table>
     </div>
@@ -91,5 +130,9 @@
 {% endblock %}
 
 {% block scripts %}
+<!-- Librerías Necesarias -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Tu Script Personalizado -->
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 {% endblock %}

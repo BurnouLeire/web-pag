@@ -1,25 +1,16 @@
 let histogramChart, pieChart;
+let allHistoricalData = {};
 
-// --- Mock Data Alineado a la Tesis de RIVALESA S.A. ---
+// <--- CAMBIO IMPORTANTE: Cambié el nombre a 'v2_ml' para borrar la memoria vieja
+// y obligar al navegador a traer los datos nuevos del modelo .pkl
+const CACHE_KEY = 'dashboard_data_v2_ml'; 
+
+// Mock Data de respaldo
 const mockData = {
-    // Métricas del Modelo (Req. No Funcional 3.2.2.1.4)
-    aiMetrics: {
-        r2Score: 0.84, // Supera el 0.80 requerido
-        processedCertificates: 4125, // Basado en tu Figura 18
-        daysOptimized: 1240, // Suma de días extendidos de forma segura
-    },
-    // Datos para el histograma de carga de trabajo
-    calibrationByMonth: {
-        labels: ['Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
-        data: [45, 52, 38, 65, 48, 70]
-    },
-    // Datos para la tabla con enfoque en OPTIMIZACIÓN
-    instrumentTypes: [
-        { type: 'Manómetros', total: 145, stdInterval: 365, optInterval: 412, confidence: '94%' },
-        { type: 'Vacuómetros', total: 82, stdInterval: 365, optInterval: 380, confidence: '88%' },
-        { type: 'Indicadores de Presión', total: 210, stdInterval: 180, optInterval: 175, confidence: '91%' },
-        { type: 'Manovacuómetros', total: 65, stdInterval: 365, optInterval: 405, confidence: '95%' }
-    ]
+    aiMetrics: { r2Score: 0.94, processedCertificates: 0 }, 
+    historicalData: { 2024: [0,0,0,0,0,0,0,0,0,0,0,0] },
+    availableYears: [2024],
+    instrumentTypes: []
 };
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -28,35 +19,105 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function initDashboardAsync() {
     try {
-        const data = await fetchDashboardData();
+        let data;
 
-        // Actualizar Tarjetas de la Tesis
-        document.getElementById('r2-score').textContent = data.aiMetrics.r2Score.toFixed(2);
-        document.getElementById('total-certs').textContent = data.aiMetrics.processedCertificates.toLocaleString();
-        document.getElementById('days-optimized').textContent = "+" + data.aiMetrics.daysOptimized;
+        // <--- Lógica de Caché
+        const cachedData = sessionStorage.getItem(CACHE_KEY);
 
-        initHistogram(data.calibrationByMonth);
-        initPieChart(data.instrumentTypes);
-        updateTypeTable(data.instrumentTypes);
+        if (cachedData) {
+            console.log("📦 Usando datos en caché (sin petición al servidor)");
+            data = JSON.parse(cachedData);
+        } else {
+            console.log("🌐 No hay caché, descargando datos del modelo ML...");
+            data = await fetchDashboardData();
+
+            // Guardamos solo si no hay error
+            if (data && !data.error) {
+                sessionStorage.setItem(CACHE_KEY, JSON.stringify(data));
+            }
+        }
+
+        // 1. KPIs (Ya sin los "Días Optimizados")
+        if (data.aiMetrics) {
+            const elR2 = document.getElementById('r2-score');
+            const elCerts = document.getElementById('total-certs');
+            
+            // Aquí mostramos el R2 que viene de tu archivo .pkl
+            if(elR2) elR2.textContent = data.aiMetrics.r2Score;
+            
+            // Total de certificados procesados
+            if(elCerts) elCerts.textContent = data.aiMetrics.processedCertificates.toLocaleString();
+        }
+
+        // 2. Histograma
+        if (data.historicalData && data.availableYears) {
+            allHistoricalData = data.historicalData;
+            setupYearSelector(data.availableYears);
+            
+            const latestYear = Math.max(...data.availableYears);
+            initHistogram(latestYear);
+        }
+
+        // 3. Gráfico de Dona y Tabla
+        if (data.instrumentTypes && data.instrumentTypes.length > 0) {
+            initPieChart(data.instrumentTypes);
+            updateTypeTable(data.instrumentTypes);
+        } else {
+            console.warn("No hay tipos de instrumentos para mostrar.");
+        }
 
     } catch (error) {
-        console.error("Error al inicializar el dashboard:", error);
+        console.error("Error init:", error);
     }
 }
 
-function initHistogram(calibrationData) {
-    const ctx = document.getElementById('histogramChart').getContext('2d');
+async function fetchDashboardData() {
+    try {
+        const response = await fetch('/dashboard/data');
+        if (!response.ok) throw new Error("Error HTTP " + response.status);
+        const jsonData = await response.json();
+        if (jsonData.error) throw new Error(jsonData.error);
+        return jsonData;
+    } catch (error) {
+        console.warn("Usando fallback por error:", error);
+        return mockData;
+    }
+}
+
+// --- GRÁFICOS ---
+
+function setupYearSelector(years) {
+    const selector = document.getElementById('yearFilter');
+    if(!selector) return;
+    selector.innerHTML = '';
+    
+    years.sort((a, b) => b - a).forEach(year => {
+        const opt = document.createElement('option');
+        opt.value = year;
+        opt.textContent = `Año ${year}`;
+        selector.appendChild(opt);
+    });
+
+    selector.addEventListener('change', (e) => updateHistogramData(e.target.value));
+}
+
+function initHistogram(year) {
+    const ctx = document.getElementById('histogramChart')?.getContext('2d');
+    if (!ctx) return;
+
     if (histogramChart) histogramChart.destroy();
+
+    const dataValues = allHistoricalData[year] || Array(12).fill(0);
 
     histogramChart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: calibrationData.labels,
+            labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
             datasets: [{
-                label: 'Certificados Procesados',
-                data: calibrationData.data,
+                label: 'Calibraciones',
+                data: dataValues,
                 backgroundColor: '#164ab8',
-                borderRadius: 5
+                borderRadius: 4
             }]
         },
         options: {
@@ -64,18 +125,27 @@ function initHistogram(calibrationData) {
             maintainAspectRatio: false,
             plugins: { legend: { display: false } },
             scales: {
-                y: { beginAtZero: true, ticks: { color: '#b0c4de' }, grid: { color: 'rgba(22, 74, 184, 0.1)' } },
-                x: { ticks: { color: '#b0c4de' }, grid: { display: false } }
+                y: { beginAtZero: true, grid: { borderDash: [2, 4] } },
+                x: { grid: { display: false } }
             }
         }
     });
 }
 
-function initPieChart(instrumentData) {
-    const ctx = document.getElementById('pieChart').getContext('2d');
-    const labels = instrumentData.map(item => item.type);
-    const values = instrumentData.map(item => item.total);
-    
+function updateHistogramData(year) {
+    if (!histogramChart) return;
+    histogramChart.data.datasets[0].data = allHistoricalData[year] || Array(12).fill(0);
+    histogramChart.update();
+}
+
+function initPieChart(dataArray) {
+    const ctx = document.getElementById('pieChart')?.getContext('2d');
+    if (!ctx) return;
+
+    const topData = dataArray.slice(0, 6); 
+    const labels = topData.map(d => d.type);
+    const values = topData.map(d => d.total);
+
     if (pieChart) pieChart.destroy();
 
     pieChart = new Chart(ctx, {
@@ -84,68 +154,58 @@ function initPieChart(instrumentData) {
             labels: labels,
             datasets: [{
                 data: values,
-                backgroundColor: ['#164ab8', '#f57e20', '#27ae60', '#e74c3c'],
-                borderWidth: 0
+                backgroundColor: ['#164ab8', '#f57e20', '#27ae60', '#e74c3c', '#8e44ad', '#34495e'],
+                borderWidth: 2,
+                borderColor: '#fff'
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            cutout: '65%',
             plugins: {
-                legend: { position: 'bottom', labels: { color: '#b0c4de', padding: 20 } }
+                legend: { 
+                    position: 'bottom', 
+                    labels: { 
+                        boxWidth: 12, 
+                        // Fuente aumentada como pediste
+                        font: { size: 14, weight: 'bold' },
+                        padding: 20 
+                    } 
+                }
             }
         }
     });
 }
 
-function updateTypeTable(typeDataArray) {
-    const tableBody = document.getElementById('typeTable');
-    tableBody.innerHTML = '';
+function updateTypeTable(dataArray) {
+    const tbody = document.getElementById('typeTable');
+    if (!tbody) return;
+    tbody.innerHTML = '';
 
-    typeDataArray.forEach(item => {
+    dataArray.forEach(item => {
         const row = document.createElement('tr');
-        row.className = 'border-b border-[#164ab8]/20 hover:bg-[#164ab8]/10 transition';
+        row.className = 'border-b border-gray-100 hover:bg-gray-50 transition';
         
+        // Colorear badge según confianza del modelo
+        const confVal = parseInt(item.confidence);
+        const badgeColor = confVal > 90 ? 'text-green-700 bg-green-100' : 'text-blue-700 bg-blue-100';
+
         row.innerHTML = `
-            <td class="py-3 px-4 text-white font-medium">${item.type}</td>
-            <td class="text-center py-3 px-4 text-white">${item.total}</td>
-            <td class="text-center py-3 px-4 text-[#7a9cc6]">${item.stdInterval} d</td>
-            <td class="text-center py-3 px-4 text-[#52be80] font-bold">${item.optInterval} d</td>
-            <td class="text-center py-3 px-4">
-                <span class="bg-[#27ae60]/20 text-[#52be80] text-xs px-2 py-1 rounded">${item.confidence}</span>
+            <td class="py-3 px-6 text-gray-700 font-medium">${item.type}</td>
+            <td class="text-center py-3 px-6 text-gray-600">${item.total}</td>
+            
+            <!-- Intervalo Estándar (Lo que dice la norma) -->
+            <td class="text-center py-3 px-6 text-gray-500">${item.stdInterval} d</td>
+            
+            <!-- Intervalo Optimizado (Lo que dice tu modelo XGBoost) -->
+            <td class="text-center py-3 px-6 font-bold text-green-600">${item.optInterval} d</td>
+            
+            <!-- Confianza (El R2 de tu entrenamiento) -->
+            <td class="text-center py-3 px-6">
+                <span class="${badgeColor} px-2 py-1 rounded text-xs font-bold">${item.confidence}</span>
             </td>
         `;
-        tableBody.appendChild(row);
+        tbody.appendChild(row);
     });
-}
-
-async function fetchDashboardData() {
-    try {
-        // Llamada al endpoint real de Flask que acabamos de crear
-        const response = await fetch('/api/dashboard/stats');
-        if (!response.ok) throw new Error("Error en la respuesta del servidor");
-        
-        const data = await response.json();
-
-        // Retornamos el objeto formateado exactamente como lo espera el resto de tu JS
-        return {
-            expired: data.vencidos,
-            upcoming: data.proximos,
-            calibratedThisMonth: 15, // Puedes calcularlo también en el service
-            total: data.total_registros,
-            aiMetrics: {
-                r2Score: 0.84, // Estático o desde config
-                processedCertificates: data.total_registros,
-                daysOptimized: 1240 
-            },
-            calibrationByMonth: {
-                labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'], // O dinámico desde data.histograma
-                data: [10, 20, 15, 25, 30, 40]
-            },
-            instrumentTypes: data.instrumentTypes
-        };
-    } catch (error) {
-        console.error('Error fetching real data:', error);
-        return mockData; // Fallback al mockup si algo falla
-    }
 }

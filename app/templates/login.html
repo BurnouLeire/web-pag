@@ -3,70 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acceso al Sistema</title>
+    <title>Acceso al Sistema | Laboratorio RIV</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
-    <!-- 1. PUENTE: Traemos las llaves desde Flask -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            orange: '#f57e20',
+                            blue: '#0f2744',
+                            black: '#1a1a1a',
+                            gray: '#f3f4f6'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
     <script>
         window.SUPABASE_URL = "{{ supabase_url }}";
         window.SUPABASE_ANON_KEY = "{{ supabase_key }}";
     </script>
 
-    <!-- 2. Cargamos auth.js (donde se crea window.supabaseClient) -->
+    <!-- Cargamos auth.js (aunque la lógica específica del login está abajo inline para este archivo) -->
     <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
 
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        :root {
-            --primary: #164ab8;
-            --accent: #f57e20;
-            --dark: #0f2744;
-        }
+        body { font-family: 'Inter', system-ui, sans-serif; }
     </style>
 </head>
-<body class="bg-gradient-to-br from-[#0f2744] via-[#1a3a5c] to-[#0f2744] min-h-screen flex items-center justify-center p-4">
+<body class="bg-brand-blue min-h-screen flex items-center justify-center p-4">
 
-    <div class="w-full max-w-md bg-[#1a3a5c]/80 backdrop-blur-md p-8 rounded-2xl shadow-2xl border border-[#164ab8]/30">
+    <!-- Tarjeta Principal -->
+    <div class="w-full max-w-md bg-white rounded-xl shadow-2xl overflow-hidden">
         
-        <div class="text-center mb-8">
-            <div class="inline-block p-3 bg-gradient-to-br from-[#164ab8] to-[#f57e20] rounded-xl mb-4">
-                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                </svg>
+        <div class="h-2 bg-brand-orange w-full"></div>
+
+        <div class="p-8">
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 mb-4">
+                    <svg class="w-8 h-8 text-brand-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
+                    </svg>
+                </div>
+                
+                <h1 class="text-2xl font-bold text-brand-blue tracking-tight">Laboratorio RIV</h1>
+                <p class="text-gray-500 text-sm mt-1">Gestión y Control de Instrumentos</p>
             </div>
-            <h1 id="auth-title" class="text-3xl font-bold text-white mb-2">Acceder</h1>
-            <p id="auth-subtitle" class="text-[#b0c4de] text-sm">Inicia sesión en tu cuenta</p>
+
+            <div id="message" class="hidden p-4 mb-6 rounded-md text-sm font-medium border-l-4" role="alert"></div>
+
+            <form id="auth-form" class="space-y-5">
+                <div>
+                    <label class="block text-sm font-bold text-brand-blue mb-1.5">Correo Corporativo</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                            </svg>
+                        </div>
+                        <input type="email" id="email" required placeholder="usuario@empresa.com" 
+                            class="w-full pl-10 pr-4 py-3 bg-brand-gray border border-gray-200 rounded-lg text-brand-black placeholder-gray-400 focus:ring-2 focus:ring-brand-orange focus:border-transparent outline-none transition-all">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-bold text-brand-blue mb-1.5">Contraseña</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                        </div>
+                        <input type="password" id="password" required placeholder="••••••••" 
+                            class="w-full pl-10 pr-4 py-3 bg-brand-gray border border-gray-200 rounded-lg text-brand-black placeholder-gray-400 focus:ring-2 focus:ring-brand-orange focus:border-transparent outline-none transition-all">
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" id="login-btn" 
+                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-brand-orange hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-orange transition-colors duration-200">
+                        Acceder al Sistema
+                    </button>
+                </div>
+            </form>
+            
+            <!-- SECCIÓN DE REGISTRO ELIMINADA -->
         </div>
-
-        <div id="message" class="hidden p-3 mb-4 rounded-lg text-sm" role="alert"></div>
-
-        <form id="auth-form" class="space-y-4">
-            <div>
-                <label class="block text-sm font-semibold text-[#e8f0ff] mb-2">Correo Electrónico</label>
-                <input type="email" id="email" required placeholder="tu@correo.com" class="w-full px-4 py-3 bg-[#0f2744]/50 border border-[#164ab8]/40 rounded-lg text-white placeholder-[#7a9cc6] focus:ring-2 focus:ring-[#f57e20] outline-none">
-            </div>
-            <div>
-                <label class="block text-sm font-semibold text-[#e8f0ff] mb-2">Contraseña</label>
-                <input type="password" id="password" required placeholder="••••••••" class="w-full px-4 py-3 bg-[#0f2744]/50 border border-[#164ab8]/40 rounded-lg text-white placeholder-[#7a9cc6] focus:ring-2 focus:ring-[#f57e20] outline-none">
-            </div>
-
-            <div class="pt-2">
-                <button type="submit" id="login-btn" class="w-full px-4 py-3 text-white bg-gradient-to-r from-[#164ab8] to-[#1a5fd4] rounded-lg hover:opacity-90 font-semibold shadow-lg transition duration-200">
-                    Iniciar Sesión
-                </button>
-            </div>
-        </form>
         
-        <div class="mt-6 pt-6 border-t border-[#164ab8]/20">
-            <button id="toggle-signup" class="w-full text-sm font-medium text-[#f57e20] hover:text-[#ff9a3d]">
-                ¿No tienes cuenta? Regístrate aquí
-            </button>
+        <div class="bg-gray-50 py-3 px-8 border-t border-gray-100">
+            <p class="text-xs text-center text-gray-400">© 2026 Laboratorio RIV. Acceso Restringido.</p>
         </div>
     </div>
 
     <script>
-        // Usamos el cliente que se creó en auth.js
         const client = window.supabaseClient; 
 
         const form = document.getElementById('auth-form');
@@ -74,74 +108,59 @@
         const passwordInput = document.getElementById('password');
         const messageDiv = document.getElementById('message');
         const loginBtn = document.getElementById('login-btn');
-        const toggleSignupBtn = document.getElementById('toggle-signup');
-
-        let isSignUpMode = false;
 
         function showMessage(text, isError = false) {
             messageDiv.textContent = text;
-            messageDiv.classList.remove('hidden', 'bg-red-500/30', 'text-red-100', 'bg-green-500/20', 'text-green-100');
+            messageDiv.className = 'hidden p-4 mb-6 rounded-md text-sm font-medium border-l-4';
+            
             if (isError) {
-                messageDiv.classList.add('bg-red-500/30', 'text-red-100', 'border', 'border-red-500/50');
+                messageDiv.classList.add('bg-red-50', 'text-red-700', 'border-red-500');
             } else {
-                messageDiv.classList.add('bg-green-500/20', 'text-green-100', 'border', 'border-green-500/50');
+                messageDiv.classList.add('bg-green-50', 'text-green-700', 'border-green-500');
             }
             messageDiv.classList.remove('hidden');
         }
 
-        // CORRECCIÓN: Usar 'client' en lugar de 'supabaseClient'
         async function checkSession() {
             if (!client) return; 
             const { data: { session } } = await client.auth.getSession();
             if (session) {
+                // Si ya hay sesión, redirigir directo
                 window.location.href = '/dashboard';
             }
         }
 
-        toggleSignupBtn.addEventListener('click', () => {
-            isSignUpMode = !isSignUpMode;
-            document.getElementById('auth-title').textContent = isSignUpMode ? 'Registrarse' : 'Acceder';
-            loginBtn.textContent = isSignUpMode ? 'Registrarse' : 'Iniciar Sesión';
-            toggleSignupBtn.textContent = isSignUpMode ? '¿Ya tienes cuenta? Inicia Sesión aquí' : '¿No tienes cuenta? Regístrate aquí';
-            messageDiv.classList.add('hidden');
-        });
-
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            const originalText = loginBtn.textContent;
             loginBtn.disabled = true;
-            loginBtn.textContent = isSignUpMode ? 'Registrando...' : 'Iniciando...';
+            loginBtn.innerHTML = '<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Verificando...';
+            
             messageDiv.classList.add('hidden');
 
             const email = emailInput.value;
             const password = passwordInput.value;
+            let loginSuccessful = false;
             
             try {
-                let response;
-                if (isSignUpMode) {
-                    response = await client.auth.signUp({ email, password });
-                } else {
-                    response = await client.auth.signInWithPassword({ email, password });
-                }
-
-                const { data, error } = response;
+                // SOLAMENTE LOGIN
+                const { data, error } = await client.auth.signInWithPassword({ email, password });
 
                 if (error) {
-                    showMessage(error.message, true);
-                } else if (isSignUpMode && data.user) {
-                    showMessage('¡Registro exitoso! Revisa tu correo para confirmar.', false);
+                    showMessage("Credenciales incorrectas", true); // Mensaje genérico de seguridad o usa error.message
+                
                 } else if (data.session) {
                     window.location.href = '/dashboard';
                 }
             } catch (err) {
-                showMessage("Error inesperado: " + err.message, true);
+                showMessage("Error de conexión: " + err.message, true);
             } finally {
                 loginBtn.disabled = false;
-                loginBtn.textContent = isSignUpMode ? 'Registrarse' : 'Iniciar Sesión';
+                loginBtn.textContent = originalText;
             }
         });
 
-        // Ejecutar al cargar
         checkSession();
     </script>
 </body>

@@ -1,4 +1,4 @@
-﻿annotated-types==0.7.0
+annotated-types==0.7.0
 anyio==4.12.0
 blinker==1.9.0
 cachetools==6.2.4
@@ -32,6 +32,7 @@ packaging==25.0
 pandas==2.3.3
 postgrest==2.27.0
 propcache==0.4.1
+psycopg2==2.9.11
 pycparser==2.23
 pydantic==2.12.5
 pydantic_core==2.41.5
@@ -64,7 +65,7 @@ tzdata==2025.3
 urllib3==2.6.2
 websockets==15.0.1
 Werkzeug==3.1.4
-yarl==1.22.0
 xgboost==3.1.2
-
+yarl==1.22.0
 gunicorn
+

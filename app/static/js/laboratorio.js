@@ -67,7 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const infoFields = [
       { label: "Tipo", value: instrumento.tipo || "N/A" },
       { label: "Marca", value: instrumento.marca || "N/A" },
-      { label: "Rango", value: instrumento.rango || "N/A" },
+      { label: "Instrumento", value: instrumento.instrumento || "N/A" },
       { label: "Unidad", value: instrumento.unidad || "N/A" },
       {
         label: "Última Calibración",

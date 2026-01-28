@@ -222,7 +222,7 @@ def buscar_instrumento():
                 'codigo': instrumento['codigo'],
                 'tipo': instrumento.get('tipo', 'N/A'),
                 'marca': instrumento.get('marca', 'N/A'),
-                'rango': instrumento.get('rango', 'N/A'),
+                'instrumento': instrumento.get('instrumento', 'N/A'),
                 'unidad': instrumento.get('unidad', 'N/A'),
                 'fecha_calibracion': instrumento['fecha_calibracion'],
                 'temperatura': instrumento.get('temperatura'),

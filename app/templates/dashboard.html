@@ -1,138 +1,88 @@
-{% extends "base.html" %} 
+{% extends "base.html" %}
 
-{% block title %}Dashboard RIVALESA - Métricas de Calibración{% endblock %} 
-{% block page_title %}Dashboard de Optimización{% endblock %} 
+{% block title %}Dashboard RIVALESA - IA Metrológica{% endblock %}
+{% block page_title %}Optimización Predictiva de Intervalos{% endblock %}
 
 {% block content %}
-<di  class="space-y-6 max-w-[1600px] mx-auto pb-10">
+<div class="space-y-6 max-w-[1600px] mx-auto pb-10 px-4">
   
-  <!-- ============================================= -->
-  <!-- 1. Fila de KPIs (Métricas Clave)              -->
-  <!-- ============================================= -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-    
-    <!-- KPI 1: Precisión del Modelo (R²) -->
-    <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
-      <div class="flex justify-between items-start">
-        <div>
-          <p class="text-gray-500 text-sm font-bold uppercase tracking-wide">Precisión del Modelo (R²)</p>
-          <h3 class="text-4xl font-extrabold text-gray-800 mt-2" id="r2-score">--.--</h3>
-        </div>
-        <div class="p-3 bg-green-50 border border-green-100 rounded-lg text-green-600">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path></svg>
-        </div>
-      </div>
-      <p class="text-green-600 text-sm font-medium mt-3 flex items-center gap-1">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-        Objetivo superado (> 0.80)
-      </p>
+  <!-- 1. KPIs de Inteligencia Artificial -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+      <p class="text-gray-500 text-sm font-bold uppercase tracking-wide">Precisión del Modelo (R²)</p>
+      <h3 class="text-4xl font-extrabold text-blue-700 mt-2" id="r2-score">--.--</h3>
+      <p class="text-green-600 text-sm font-medium mt-3 italic">● Confiabilidad Alta (> 0.90)</p>
     </div>
 
-    <!-- KPI 2: Volumen de Datos -->
-    <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
-      <div class="flex justify-between items-start">
-        <div>
-          <p class="text-gray-500 text-sm font-bold uppercase tracking-wide">Certificados Procesados</p>
-          <h3 class="text-4xl font-extrabold text-gray-800 mt-2" id="total-certs">0</h3>
-        </div>
-        <div class="p-3 bg-blue-50 border border-blue-100 rounded-lg text-blue-600">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-          </svg>
-        </div>
-      </div>
-      <p class="text-gray-400 text-xs mt-3 font-medium">Histórico de calibraciones en BD</p>
+    <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+      <p class="text-gray-500 text-sm font-bold uppercase tracking-wide">Dataset Procesado</p>
+      <h3 class="text-4xl font-extrabold text-gray-800 mt-2" id="total-certs">0</h3>
+      <p class="text-gray-400 text-xs mt-3 font-medium uppercase tracking-tighter">Certificados históricos en entrenamiento</p>
     </div>
 
+    <div class="bg-gradient-to-br from-blue-700 to-blue-900 border border-blue-800 rounded-xl p-6 shadow-md text-white">
+        <h4 class="font-bold text-sm uppercase mb-2 opacity-90">Estado del Algoritmo</h4>
+        <div class="flex items-center gap-2 text-green-400">
+            <span class="relative flex h-3 w-3">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+            </span>
+            <span class="font-bold">Optimización Predictiva Activa</span>
+        </div>
+        <p class="text-xs mt-3 opacity-70 italic font-light">Modelo: Gradient Boosting Regressor (IA)</p>
+    </div>
   </div>
 
-  <!-- ============================================= -->
-  <!-- 2. Sección de Gráficos                        -->
-  <!-- ============================================= -->
+  <!-- 2. Gráficos de Gestión (Patrones y Distribución) -->
   <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-    
-    <!-- GRÁFICO 1: Barras con Selector de Año (MODIFICADO) -->
-    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col">
-      
-      <!-- Cabecera Flexible: Título + Selector -->
+    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
       <div class="flex flex-row justify-between items-center mb-6">
-          <h3 class="text-lg font-bold text-gray-800 border-l-4 border-blue-600 pl-3">
-            Volumen Mensual de Instrumentos
-          </h3>
-          
-          <!-- ESTE ES EL SELECTOR QUE USA EL JS -->
-          <div class="relative">
-              <select id="yearFilter" class="bg-gray-50 border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 pr-8 shadow-sm cursor-pointer outline-none">
-                  <option>Cargando...</option>
-              </select>
-          </div>
+          <h3 class="text-lg font-bold text-gray-800 border-l-4 border-blue-600 pl-3">Patrones de Carga Mensual</h3>
+          <select id="yearFilter" class="bg-gray-50 border border-gray-300 text-xs rounded-lg p-2 outline-none cursor-pointer"></select>
       </div>
-
-      <div class="relative h-80 w-full">
-        <canvas id="histogramChart"></canvas>
-      </div>
+      <div class="h-72"><canvas id="histogramChart"></canvas></div>
     </div>
 
-    <!-- GRÁFICO 2: Dona (Sin cambios) -->
-    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col">
-      <h3 class="text-lg font-bold text-gray-800 mb-6 border-l-4 border-blue-600 pl-3">
-        Distribución por Tipo de Instrumento
-      </h3>
-      <div class="relative h-80 w-full flex justify-center items-center">
-        <canvas id="pieChart"></canvas>
-      </div>
+    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+      <h3 class="text-lg font-bold text-gray-800 mb-6 border-l-4 border-indigo-500 pl-3">Distribución de Instrumentos</h3>
+      <div class="h-72 relative"><canvas id="pieChart"></canvas></div>
     </div>
   </div>
 
-  <!-- ============================================= -->
-  <!-- 3. Tabla de Optimización Detallada            -->
-  <!-- ============================================= -->
+  <!-- 3. Tabla de Resultados (La Mejora Sugerida) -->
   <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-    <div class="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-      <h3 class="text-lg font-bold text-gray-800 border-l-4 border-green-500 pl-3">
-        Análisis de Intervalos: Estándar vs. IA
-      </h3>
-      <span class="bg-blue-50 text-blue-700 text-xs font-bold px-3 py-1 rounded-full border border-blue-100">
-        Datos actualizados de Supabase
-      </span>
-    </div>
-
+    <h3 class="text-lg font-bold text-gray-800 mb-6 border-l-4 border-green-500 pl-3">Intervalo Estándar vs. Sugerencia de la IA</h3>
     <div class="overflow-x-auto rounded-lg border border-gray-100">
       <table class="w-full text-sm text-left">
-        <thead class="bg-gray-50 text-gray-600 uppercase text-xs font-bold tracking-wider border-b border-gray-200">
+        <thead class="bg-gray-50 text-gray-600 uppercase text-xs font-bold border-b border-gray-200">
           <tr>
             <th class="py-4 px-6">Tipo de Instrumento</th>
-            <th class="py-4 px-6 text-center">Total Equipos</th>
-            <th class="py-4 px-6 text-center text-gray-500">Intervalo Std.</th>
-            <!-- Columna destacada -->
-            <th class="py-4 px-6 text-center text-green-700 bg-green-50/60">Intervalo IA</th>
-            <th class="py-4 px-6 text-center">Confianza Modelo</th>
+            <th class="py-4 px-6 text-center">Intervalo Original</th>
+            <th class="py-4 px-6 text-center text-blue-700 bg-blue-50/50">Intervalo IA</th>
+            <th class="py-4 px-6 text-center">Estado de Optimización</th>
           </tr>
         </thead>
-        <tbody id="typeTable" class="divide-y divide-gray-100 text-gray-700 bg-white">
-            <!-- Estado de carga inicial -->
-            <tr>
-                <td colspan="5" class="text-center py-8 text-gray-400 italic">
-                    <div class="flex justify-center items-center gap-2">
-                        <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Conectando con Supabase...
-                    </div>
-                </td>
-            </tr>
+        <tbody id="typeTable" class="divide-y divide-gray-100 text-gray-700 bg-white italic">
+            <tr><td colspan="4" class="text-center py-8">Procesando análisis predictivo...</td></tr>
         </tbody>
       </table>
     </div>
   </div>
+
+  <!-- 4. Variables Críticas (Justificación Técnica al final) -->
+  <div class="bg-white p-8 rounded-xl border-2 border-orange-100 shadow-md">
+    <h3 class="text-xl font-bold text-gray-800 flex items-center gap-2 mb-2">
+        <svg class="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path></svg>
+        Análisis de Sensibilidad: Variables Críticas
+    </h3>
+    <p class="text-sm text-gray-500 mb-6 italic">Pesos porcentuales de las variables que más influyen en el cálculo de la IA.</p>
+    <div class="h-80 w-full"><canvas id="importanceChart"></canvas></div>
+  </div>
+
 </div>
 {% endblock %}
 
 {% block scripts %}
-<!-- Librerías Necesarias -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<!-- Tu Script Personalizado -->
 <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
 {% endblock %}

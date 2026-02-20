@@ -57,9 +57,9 @@ python -m venv venv
  Instalar Dependencias
  pip install -r requirements.txt
 
- Configuración de Variables de Entorno
+## Configuración de Variables de Entorno
 
- # Archivo: .env
+ Archivo: .env
 
 # Configuración de Flask
 FLASK_APP=run.py
@@ -70,6 +70,6 @@ SECRET_KEY="genera_una_clave_segura_aqui"
 SUPABASE_URL="https://tu-proyecto.supabase.co"
 SUPABASE_KEY="tu-clave-anon-publica-aqui"
 
- Ejecutar la Aplicación
+## Ejecutar la Aplicación
 
  python run.py

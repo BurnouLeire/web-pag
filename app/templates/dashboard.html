@@ -6,20 +6,23 @@
 {% block content %}
 <div class="space-y-6 max-w-[1600px] mx-auto pb-10 px-4">
   
-  <!-- 1. KPIs de Inteligencia Artificial -->
+  <!-- 1. Fila de KPIs (Métricas de ML) -->
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Precisión R2 -->
     <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
       <p class="text-gray-500 text-sm font-bold uppercase tracking-wide">Precisión del Modelo (R²)</p>
       <h3 class="text-4xl font-extrabold text-blue-700 mt-2" id="r2-score">--.--</h3>
       <p class="text-green-600 text-sm font-medium mt-3 italic">● Confiabilidad Alta (> 0.90)</p>
     </div>
 
+    <!-- Dataset -->
     <div class="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
       <p class="text-gray-500 text-sm font-bold uppercase tracking-wide">Dataset Procesado</p>
       <h3 class="text-4xl font-extrabold text-gray-800 mt-2" id="total-certs">0</h3>
-      <p class="text-gray-400 text-xs mt-3 font-medium uppercase tracking-tighter">Certificados históricos en entrenamiento</p>
+      <p class="text-gray-400 text-xs mt-3 font-medium uppercase tracking-tighter">Certificados históricos</p>
     </div>
 
+    <!-- Estado del Algoritmo -->
     <div class="bg-gradient-to-br from-blue-700 to-blue-900 border border-blue-800 rounded-xl p-6 shadow-md text-white">
         <h4 class="font-bold text-sm uppercase mb-2 opacity-90">Estado del Algoritmo</h4>
         <div class="flex items-center gap-2 text-green-400">
@@ -29,56 +32,68 @@
             </span>
             <span class="font-bold">Optimización Predictiva Activa</span>
         </div>
-        <p class="text-xs mt-3 opacity-70 italic font-light">Modelo: Gradient Boosting Regressor (IA)</p>
+        <p class="text-xs mt-3 opacity-70 italic font-light">Modelo: Gradient Boosting Regressor</p>
     </div>
   </div>
 
-  <!-- 2. Gráficos de Gestión (Patrones y Distribución) -->
+  <!-- 2. Gráficos de Gestión (Histograma y Dona) -->
   <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
     <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
       <div class="flex flex-row justify-between items-center mb-6">
           <h3 class="text-lg font-bold text-gray-800 border-l-4 border-blue-600 pl-3">Patrones de Carga Mensual</h3>
           <select id="yearFilter" class="bg-gray-50 border border-gray-300 text-xs rounded-lg p-2 outline-none cursor-pointer"></select>
       </div>
-      <div class="h-72"><canvas id="histogramChart"></canvas></div>
+      <div class="h-64"><canvas id="histogramChart"></canvas></div>
     </div>
 
     <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
       <h3 class="text-lg font-bold text-gray-800 mb-6 border-l-4 border-indigo-500 pl-3">Distribución de Instrumentos</h3>
-      <div class="h-72 relative"><canvas id="pieChart"></canvas></div>
+      <div class="h-64 relative"><canvas id="pieChart"></canvas></div>
     </div>
   </div>
 
-  <!-- 3. Tabla de Resultados (La Mejora Sugerida) -->
-  <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
-    <h3 class="text-lg font-bold text-gray-800 mb-6 border-l-4 border-green-500 pl-3">Intervalo Estándar vs. Sugerencia de la IA</h3>
-    <div class="overflow-x-auto rounded-lg border border-gray-100">
-      <table class="w-full text-sm text-left">
-        <thead class="bg-gray-50 text-gray-600 uppercase text-xs font-bold border-b border-gray-200">
-          <tr>
-            <th class="py-4 px-6">Tipo de Instrumento</th>
-            <th class="py-4 px-6 text-center">Intervalo Original</th>
-            <th class="py-4 px-6 text-center text-blue-700 bg-blue-50/50">Intervalo IA</th>
-            <th class="py-4 px-6 text-center">Estado de Optimización</th>
-          </tr>
-        </thead>
-        <tbody id="typeTable" class="divide-y divide-gray-100 text-gray-700 bg-white italic">
-            <tr><td colspan="4" class="text-center py-8">Procesando análisis predictivo...</td></tr>
-        </tbody>
-      </table>
+  <!-- 3. SECCIÓN MIXTA: Tabla de Resultados y Variables Críticas -->
+  <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+    
+    <!-- Tabla de Optimización (Ocupa 2 columnas de 3 en pantallas grandes) -->
+    <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm xl:col-span-2">
+      <div class="mb-6">
+        <h3 class="text-lg font-bold text-gray-800 border-l-4 border-green-500 pl-3">Sugerencias de Optimización IA</h3>
+        <p class="text-xs text-gray-400 mt-1 uppercase">Comparativa de intervalos Estándar vs. Predictivo</p>
+      </div>
+      <div class="overflow-x-auto rounded-lg border border-gray-100">
+        <table class="w-full text-sm text-left">
+          <thead class="bg-gray-50 text-gray-600 uppercase text-xs font-bold border-b border-gray-200">
+            <tr>
+              <th class="py-4 px-6 text-xs">Instrumento</th>
+              <th class="py-4 px-6 text-center text-xs">Original</th>
+              <th class="py-4 px-6 text-center text-blue-700 bg-blue-50/50 text-xs">IA</th>
+              <th class="py-4 px-6 text-center text-xs">Estado</th>
+            </tr>
+          </thead>
+          <tbody id="typeTable" class="divide-y divide-gray-100 text-gray-700 bg-white">
+              <tr><td colspan="4" class="text-center py-8 text-gray-400 italic">Analizando datos...</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
-  </div>
 
-  <!-- 4. Variables Críticas (Justificación Técnica al final) -->
-  <div class="bg-white p-8 rounded-xl border-2 border-orange-100 shadow-md">
-    <h3 class="text-xl font-bold text-gray-800 flex items-center gap-2 mb-2">
-        <svg class="w-6 h-6 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path></svg>
-        Análisis de Sensibilidad: Variables Críticas
-    </h3>
-    <p class="text-sm text-gray-500 mb-6 italic">Pesos porcentuales de las variables que más influyen en el cálculo de la IA.</p>
-    <div class="h-80 w-full"><canvas id="importanceChart"></canvas></div>
-  </div>
+    <!-- Variables Críticas (Ocupa 1 columna de 3) -->
+    <div class="bg-white p-6 rounded-xl border-2 border-orange-100 shadow-sm flex flex-col">
+        <div class="mb-4">
+            <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                Variables Críticas
+            </h3>
+            <p class="text-xs text-gray-500 italic mt-1">Impacto porcentual en la predicción final.</p>
+        </div>
+        <!-- Ajustamos la altura para que coincida visualmente con la tabla -->
+        <div class="flex-grow min-h-[400px]">
+            <canvas id="importanceChart"></canvas>
+        </div>
+    </div>
 
+  </div>
 </div>
 {% endblock %}
 

@@ -43,8 +43,9 @@ PROYECTO/
 ├── requirements.txt           # Dependencias
 └── run.py                     # Punto de entrada
 
+```
 
-## 💻 Instalación y Configuración
+### 💻 Instalación y Configuración
 
 git clone https://github.com/TU_USUARIO/NOMBRE_DEL_REPO.git
 cd NOMBRE_DEL_REPO
@@ -68,3 +69,7 @@ SECRET_KEY="genera_una_clave_segura_aqui"
 # Configuración de Supabase (Base de Datos & Auth)
 SUPABASE_URL="https://tu-proyecto.supabase.co"
 SUPABASE_KEY="tu-clave-anon-publica-aqui"
+
+ Ejecutar la Aplicación
+
+ python run.py

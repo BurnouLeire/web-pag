@@ -24,7 +24,7 @@ def cargar_modelo():
 
         if isinstance(modelo_data, dict):
             modelo = modelo_data['model']
-            feature_cols = modelo_data.get('feature_cols', FEATURE_COLS)
+            feature_cols = modelo_data.get('features', FEATURE_COLS)
         else:
             modelo = modelo_data
             feature_cols = FEATURE_COLS

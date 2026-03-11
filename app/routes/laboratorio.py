@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, jsonify
 import os
 from datetime import timedelta
 from dotenv import load_dotenv
-from app.services.supabase_service import SupabaseService
+from app.repositories.supabase_repository import SupabaseRepository
 from app.services.prediction_service import PredictionService
 from app.services.feature_engineering import FeatureEngineering
 
@@ -12,7 +12,7 @@ bp = Blueprint("laboratorio", __name__, url_prefix="/laboratorio")
 
 # Inicializar servicios
 prediction_service = PredictionService()
-supabase_service = SupabaseService()
+supabase_repository = SupabaseRepository()
 
 @bp.route("/")
 def index():
@@ -30,15 +30,15 @@ def buscar_instrumento():
         codigo = data.get('codigo', '').strip().upper()
         
         # 1. Obtener datos de Supabase
-        instrumento = supabase_service.buscar_instrumento(codigo)
+        instrumento = supabase_repository.buscar_instrumento(codigo)
         if not instrumento: return jsonify({'error': 'No encontrado'}), 404
         
-        historial = supabase_service.obtener_historial_completo(codigo)
+        historial = supabase_repository.obtener_historial_completo(codigo)
         # Ordenar historial cronológicamente
         historial = sorted(historial, key=lambda x: x['fecha_calibracion'])
         
         # 2. Predicción Futura (Estado Actual)
-        features_raw = supabase_service.extraer_features(instrumento, codigo)
+        features_raw = supabase_repository.extraer_features(instrumento, codigo)
         
         # Calcular edad actual usando la lógica centralizada
         fecha_primera = FeatureEngineering.parsear_fecha(historial[0]['fecha_calibracion'])
@@ -58,8 +58,8 @@ def buscar_instrumento():
         datos_estaticos = {
             'marca_id': features_raw.get('marca_id', 0),
             'incertidumbre': features_raw.get('incertidumbre', 0),
-            'temperatura': features_raw.get('temperatura', 20),
-            'humedad': features_raw.get('humedad', 50)
+            'temperatura': float(features_raw.get('temperatura', 20)),
+            'humedad': float(features_raw.get('humedad', 50))
         }
 
         for i in range(1, len(historial)):
@@ -69,12 +69,13 @@ def buscar_instrumento():
                     item_actual=historial[i],
                     item_previo=historial[i-1],
                     datos_estaticos=datos_estaticos,
-                    fecha_primera_dt=fecha_primera
+                    fecha_primera_dt=fecha_primera,
+                    index_actual=i + 1
                 )
                 
                 # Predecir
-                val_pred, _ = prediction_service.predict_single(f_hist)
-                predicciones_historicas.append(val_pred)
+                val_pred_dias, _ = prediction_service.predict_single(f_hist)
+                predicciones_historicas.append(val_pred_dias)
 
             except Exception as e:
                 print(f"Error en historial {i}: {e}")
@@ -86,6 +87,7 @@ def buscar_instrumento():
             'prediccion': {
                 'dias_hasta_siguiente': dias_futuros,
                 'meses_aproximados': meses_futuros,
+                'semanas_aproximadas': round(dias_futuros / 7, 0),
                 'fecha_estimada': fecha_estimada.isoformat()
             },
             'historial': historial,

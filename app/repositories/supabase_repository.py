@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 import os
 
-class SupabaseService:
+class SupabaseRepository:
     def __init__(self):
         # Debug: mostrar lo que encuentra
         print(f"DEBUG - SUPABASE_URL: {os.getenv('SUPABASE_URL')}")

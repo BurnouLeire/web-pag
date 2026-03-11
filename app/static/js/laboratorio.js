@@ -102,13 +102,13 @@ document.addEventListener("DOMContentLoaded", () => {
   // MOSTRAR RESULTADO DE PREDICCIÓN
   // ============================================
   function mostrarResultado(prediccion, instrumento) {
-    document.getElementById("diasResultado").textContent = 
+    document.getElementById("diasResultado").textContent =
       `${prediccion.dias_hasta_siguiente} días`;
     document.getElementById("mesesResultado").textContent =
       prediccion.meses_aproximados;
     document.getElementById("semanasResultado").textContent =
       prediccion.semanas_aproximadas;
-    document.getElementById("fechaEstimada").textContent = 
+    document.getElementById("fechaEstimada").textContent =
       `Fecha estimada: ${formatearFecha(prediccion.fecha_estimada)}`;
 
     document.getElementById("resultCard").classList.add("show");
@@ -121,163 +121,165 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 100);
   }
 
+
+
   // ============================================
   // MOSTRAR GRÁFICO DE TENDENCIA - VERSIÓN SIMPLIFICADA
   // ============================================
-function mostrarGraficoTendencia(historial, prediccionesHistoricas, diasPredichos, fechaEstimada) {
+  function mostrarGraficoTendencia(historial, prediccionesHistoricas, diasPredichos, fechaEstimada) {
     try {
-        // 1. PREPARAR FECHAS (Formato completo DD/MM/YYYY)
-        // Usamos todas las fechas del historial + la fecha futura predicha
-        const todasLasFechas = historial.map(h => formatearFechaDDMM(h.fecha_calibracion));
-        const fechaFuturaObj = new Date(fechaEstimada);
-        todasLasFechas.push(formatearFechaDDMM(fechaFuturaObj));
-        // Índices para el sombreado
-        const indiceUltimoReal = historial.length - 1;
-        const indicePrediccion = todasLasFechas.length - 1;
+      // 1. PREPARAR FECHAS (Formato completo DD/MM/YYYY)
+      // Usamos todas las fechas del historial + la fecha futura predicha
+      const todasLasFechas = historial.map(h => formatearFechaDDMM(h.fecha_calibracion));
+      const fechaFuturaObj = new Date(fechaEstimada);
+      todasLasFechas.push(formatearFechaDDMM(fechaFuturaObj));
+      // Índices para el sombreado
+      const indiceUltimoReal = historial.length - 1;
+      const indicePrediccion = todasLasFechas.length - 1;
 
-        // 2. CALCULAR DÍAS REALES (Línea Azul)
-        // Igual que en tu guía de Python: empezamos en 0
-        let diasReales = [0]; 
-        for (let i = 1; i < historial.length; i++) {
-            const actual = new Date(historial[i].fecha_calibracion);
-            const anterior = new Date(historial[i-1].fecha_calibracion);
-            const diff = Math.round((actual - anterior) / (1000 * 60 * 60 * 24));
-            diasReales.push(diff);
-        }
-        diasReales.push(null); // Espacio para el punto futuro
+      // 2. CALCULAR DÍAS REALES (Línea Azul)
+      // Igual que en tu guía de Python: empezamos en 0
+      let diasReales = [0];
+      for (let i = 1; i < historial.length; i++) {
+        const actual = new Date(historial[i].fecha_calibracion);
+        const anterior = new Date(historial[i - 1].fecha_calibracion);
+        const diff = Math.round((actual - anterior) / (1000 * 60 * 60 * 24));
+        diasReales.push(diff);
+      }
+      diasReales.push(null); // Espacio para el punto futuro
 
-        // 3. PREPARAR PREDICCIONES ML (Línea Verde)
-        // Mantenemos los valores que vienen del servidor y agregamos null al final
-        let diasML = [...prediccionesHistoricas, null];
+      // 3. PREPARAR PREDICCIONES ML (Línea Verde)
+      // Mantenemos los valores que vienen del servidor y agregamos null al final
+      let diasML = [...prediccionesHistoricas, null];
 
-        // 4. PUNTO ROJO (Predicción Futura)
-        let puntoRojo = new Array(todasLasFechas.length).fill(null);
-        puntoRojo[puntoRojo.length - 1] = diasPredichos;
+      // 4. PUNTO ROJO (Predicción Futura)
+      let puntoRojo = new Array(todasLasFechas.length).fill(null);
+      puntoRojo[puntoRojo.length - 1] = diasPredichos;
 
-        // 5. CONFIGURACIÓN DEL GRÁFICO
-        const ctx = document.getElementById("calibrationChart").getContext("2d");
-        if (calibrationChart) calibrationChart.destroy();
+      // 5. CONFIGURACIÓN DEL GRÁFICO
+      const ctx = document.getElementById("calibrationChart").getContext("2d");
+      if (calibrationChart) calibrationChart.destroy();
 
-        calibrationChart = new Chart(ctx, {
-    type: "line",
-    data: {
-        labels: todasLasFechas,
-        datasets: [
+      calibrationChart = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: todasLasFechas,
+          datasets: [
             {
-                label: "Calibraciones Reales",
-                data: diasReales,
-                // Azul brillante y limpio
-                borderColor: "#3b82f6", 
-                backgroundColor: "rgba(59, 130, 246, 0.1)", // Fondo suave azul
-                borderWidth: 4,
-                pointRadius: 6,
-                pointBackgroundColor: "#3b82f6",
-                pointBorderColor: "#fff",
-                pointBorderWidth: 2,
-                //fill: true, // Relleno suave para dar volumen
-                tension: 0.3
+              label: "Calibraciones Reales",
+              data: diasReales,
+              // Azul brillante y limpio
+              borderColor: "#3b82f6",
+              backgroundColor: "rgba(59, 130, 246, 0.1)", // Fondo suave azul
+              borderWidth: 4,
+              pointRadius: 6,
+              pointBackgroundColor: "#3b82f6",
+              pointBorderColor: "#fff",
+              pointBorderWidth: 2,
+              //fill: true, // Relleno suave para dar volumen
+              tension: 0.3
             },
             {
-                label: "Prediccion",
-                data: diasML,
-                // Verde esmeralda brillante
-                borderColor: "#10b981", 
-                backgroundColor: "transparent",
-                borderWidth: 3,
-                borderDash: [6, 6], // Línea punteada clara
-                pointRadius: 7,
-                pointStyle: 'rectRot', // Diamante para variar
-                pointBackgroundColor: "#10b981",
-                pointBorderColor: "#fff",
-                pointBorderWidth: 2,
-                fill: false,
-                tension: 0.3
+              label: "Prediccion",
+              data: diasML,
+              // Verde esmeralda brillante
+              borderColor: "#10b981",
+              backgroundColor: "transparent",
+              borderWidth: 3,
+              borderDash: [6, 6], // Línea punteada clara
+              pointRadius: 7,
+              pointStyle: 'rectRot', // Diamante para variar
+              pointBackgroundColor: "#10b981",
+              pointBorderColor: "#fff",
+              pointBorderWidth: 2,
+              fill: false,
+              tension: 0.3
             },
             {
-                label: "Próxima Calibración",
-                data: puntoRojo,
-                // Rojo vibrante
-                borderColor: "#ef4444",
-                backgroundColor: "#ef4444",
-                pointRadius: 10,
-                pointHoverRadius: 15,
-                pointStyle: 'circle',
-                pointBorderColor: "#fff",
-                pointBorderWidth: 4,
-                showLine: false
+              label: "Próxima Calibración",
+              data: puntoRojo,
+              // Rojo vibrante
+              borderColor: "#ef4444",
+              backgroundColor: "#ef4444",
+              pointRadius: 10,
+              pointHoverRadius: 15,
+              pointStyle: 'circle',
+              pointBorderColor: "#fff",
+              pointBorderWidth: 4,
+              showLine: false
             }
-        ]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        // Fondo del área del gráfico (blanco puro)
-        plugins: {
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          // Fondo del área del gráfico (blanco puro)
+          plugins: {
             legend: {
-                labels: {
-                    color: "#3565a8ff", // Gris muy oscuro casi negro para leer bien
-                    font: { size: 13, weight: 'bold' }
-                }
+              labels: {
+                color: "#3565a8ff", // Gris muy oscuro casi negro para leer bien
+                font: { size: 13, weight: 'bold' }
+              }
             },
             tooltip: {
-                backgroundColor: "rgba(255, 255, 255, 0.9)", // Tooltip blanco
-                titleColor: "#111827",
-                bodyColor: "#111827",
-                borderColor: "#e5e7eb",
-                borderWidth: 1,
-                padding: 12,
-                displayColors: true,
-                bodyFont: { size: 14 }
+              backgroundColor: "rgba(255, 255, 255, 0.9)", // Tooltip blanco
+              titleColor: "#111827",
+              bodyColor: "#111827",
+              borderColor: "#e5e7eb",
+              borderWidth: 1,
+              padding: 12,
+              displayColors: true,
+              bodyFont: { size: 14 }
             },
             annotation: {
-                        annotations: {
-                            zonaRoja: {
-                                type: 'box',
-                                xMin: indiceUltimoReal,
-                                xMax: indicePrediccion,
-                                backgroundColor: 'rgba(239, 68, 68, 0.1)', // Rojo muy suave (Red 500)
-                                borderWidth: 0,
-                                z: -1 // Para que quede detrás de las líneas
-                            }
-                        }
-                    }
-        },
-        scales: {
-            x: {
-                grid: {
-                    display: false // Quitamos las líneas verticales para que se vea más limpio
-                },
-                ticks: {
-                    color: "#4b5563", // Gris medio para las fechas
-                    font: { size: 11, weight: '500' },
-                    maxRotation: 45,
-                    minRotation: 45,
-                    autoSkip: false
+              annotations: {
+                zonaRoja: {
+                  type: 'box',
+                  xMin: indiceUltimoReal,
+                  xMax: indicePrediccion,
+                  backgroundColor: 'rgba(239, 68, 68, 0.1)', // Rojo muy suave (Red 500)
+                  borderWidth: 0,
+                  z: -1 // Para que quede detrás de las líneas
                 }
+              }
+            }
+          },
+          scales: {
+            x: {
+              grid: {
+                display: false // Quitamos las líneas verticales para que se vea más limpio
+              },
+              ticks: {
+                color: "#4b5563", // Gris medio para las fechas
+                font: { size: 11, weight: '500' },
+                maxRotation: 45,
+                minRotation: 45,
+                autoSkip: false
+              }
             },
             y: {
-                beginAtZero: true,
-                grid: {
-                    color: "#f3f4f6", // Líneas horizontales muy claritas (casi invisibles)
-                    drawBorder: false
-                },
-                ticks: {
-                    color: "#346ab4ff",
-                    font: { size: 12 },
-                    callback: (val) => val + " d" // Abreviatura de días
-                }
+              beginAtZero: true,
+              grid: {
+                color: "#f3f4f6", // Líneas horizontales muy claritas (casi invisibles)
+                drawBorder: false
+              },
+              ticks: {
+                color: "#346ab4ff",
+                font: { size: 12 },
+                callback: (val) => val + " d" // Abreviatura de días
+              }
             }
+          }
         }
-    }
-});
-        document.getElementById("trendChart").classList.add("show");
+      });
+      document.getElementById("trendChart").classList.add("show");
     } catch (e) {
-        console.error("Error en gráfico:", e);
+      console.error("Error en gráfico:", e);
     }
-}
+  }
 
-// NUEVA FUNCIÓN AUXILIAR PARA FECHA CORREGIDA
-function formatearFechaDDMM(fechaStr) {
+  // NUEVA FUNCIÓN AUXILIAR PARA FECHA CORREGIDA
+  function formatearFechaDDMM(fechaStr) {
     const fecha = new Date(fechaStr);
     if (isNaN(fecha)) return "S/F";
     // Forzamos el formato día/mes/año
@@ -285,7 +287,7 @@ function formatearFechaDDMM(fechaStr) {
     const mes = String(fecha.getMonth() + 1).padStart(2, '0');
     const anio = fecha.getFullYear();
     return `${dia}/${mes}/${anio}`;
-}
+  }
 
   // ============================================
   // FUNCIONES AUXILIARES

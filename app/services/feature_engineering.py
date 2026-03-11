@@ -52,7 +52,7 @@ class FeatureEngineering:
         return round(dias / FeatureEngineering.CONST_DIAS_MES, 1)
 
     @staticmethod
-    def calcular_features_historicas(item_actual, item_previo, datos_estaticos, fecha_primera_dt):
+    def calcular_features_historicas(item_actual, item_previo, datos_estaticos, fecha_primera_dt, index_actual=1):
         """
         Calcula el vector de características para un punto histórico específico.
         Usado en el bucle de reconstrucción de laboratorio.
@@ -84,7 +84,8 @@ class FeatureEngineering:
             'humedad': float(hum) if hum is not None else 50.0,
             'edad_operacional': float(edad_operacional),
             'dias_desde_prev': float(dias_desde_prev),
-            'mes': float(fecha_hist.month)
+            'mes': float(fecha_hist.month),
+            'num_calibraciones': float(index_actual) # Índice en el bucle
         }
         
         return features, fecha_hist
